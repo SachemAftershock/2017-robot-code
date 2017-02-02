@@ -79,14 +79,4 @@ public class CameraCalculations
 		
 		return new Point(x, y);
 	}
-	
-	public static void main(String[] args) //testing
-	{
-		CameraCalculations CC = new CameraCalculations(320, 240);
-		
-		Point pt = new Point(270,140);
-		pt = CC.rawToScaled(pt);
-		Point pt2 = CC.findPolarPoint(pt);
-		System.out.println(pt2);
-	}	
 }
