@@ -1,76 +1,84 @@
 package org.usfirst.frc.team263.robot;
 
-import java.util.ArrayList;
-
-import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 
-import edu.wpi.cscore.UsbCamera;
-import edu.wpi.first.wpilibj.CameraServer;
-import edu.wpi.first.wpilibj.vision.VisionThread;
-import edu.wpi.first.wpilibj.vision.VisionRunner.Listener;
-
 /**
- * Class for vision processing. Can be accessed to find the center of a target object.
+ * Class for vision processing. Receives points representing the center of two contours 
+ * from the RPi and finds the distance from the corresponding target.
+ * 
  * @author Tyler Machado
- * @version b1.0
+ * @version 1.0.1
+ * @since 01-18-17
  */
-public class VisionProcessing implements Listener<VelcroPipeline>
+public class VisionProcessing
 {
-	private UsbCamera camera;
-	private VelcroPipeline vp;
-	private VisionThread visionThread;
 	public CameraCalculations cc;
+	private int resX, resY;
 	
-	public VisionProcessing()
+	public VisionProcessing(int resX, int resY)
 	{
-		camera = CameraServer.getInstance().startAutomaticCapture();
-    	vp = new VelcroPipeline();
-    	visionThread = new VisionThread(camera, vp, this);
-    	visionThread.start();
-    	cc = new CameraCalculations(160,120); //numbers hardcoded in for now, will probably be arguments in the end
+    	cc = new CameraCalculations(resX,resY);
+    	this.resX = resX;
+    	this.resY = resY;
+	}
+		
+	/**
+	 * Use for two tape pieces horizontally apart, specifically the peg
+	 */
+	public double findPixelsPerInchPeg(Point pt1, Point pt2)
+	{
+		double deltaX = Math.abs(pt2.x - pt1.x);
+		double ratio = deltaX/8.25;
+		return ratio;
 	}
 	
 	/**
-	 * Returns the point at the center of a given contour
-	 * @param number The ID number of the contour being used. When you want to find mulitple center points, start from 0 and count up
+	 * Use for two tape pieces vertically apart, specifically the boiler
 	 */
-	public Point takeCenterOfContour(int number)
+	public double findPixelsPerInchBoiler(Point pt1, Point pt2)
 	{
-		Point ctr = null;
-		ArrayList<MatOfPoint> cont = vp.filterContoursOutput();
+		double deltaY = Math.abs(pt2.y - pt1.y);
+		double ratio = deltaY/7.0;
+		return ratio;
+	}
+	
+	/**
+	 * Find the ground-bound distance between the camera and the gear-peg
+	 */
+	public double findDistancePeg(double[] nums)
+	{
+		if(nums[3] < 0) return -1.0; //error handing from the Pi
 		
-		Point[] pts = cont.get(number).toArray();	
-		Point BR = findBR(pts);
-		Point TL = findTL(pts);
-		ctr = cc.findCenterPoint(TL, BR);
-				
-		return ctr;	
+		Point[] pts = arrToPoints(nums);
+		double PPI = findPixelsPerInchPeg(pts[0], pts[1]);
+		double width = resX/PPI;
+		double distDiag = .5*width/Math.tan(25*Math.PI/180); //degrees to radians
+		double distLat = Math.sqrt(distDiag*distDiag - 189.0625); //use triangulation to find the lateral distance, magic number is deltaH squared
+		return distLat;
 	}
 	
-	private Point findBR(Point[] pts)
+	/**
+	 * Find the ground-bound distance between the camera and the boiler
+	 */
+	public double findDistanceBoiler(double[] nums)
 	{
-		Point correct = pts[0];
-		for(Point pt : pts)
-		{
-			if(pt.x >= correct.x && pt.y >= correct.y) correct = pt;
-		}
-		return correct;
-	}
-	
-	private Point findTL(Point[] pts)
-	{
-		Point correct = pts[0];
-		for(Point pt : pts)
-		{
-			if(pt.x <= correct.x && pt.y <= correct.y) correct = pt;
-		}
-		return correct;
-	}
-	
-	@Override
-	public void copyPipelineOutputs(VelcroPipeline pipeline) {
-		// TODO Auto-generated method stub
+		if(nums[3] < 0) return -1.0; //error handing from the Pi
 		
+		Point[] pts = arrToPoints(nums);
+		double PPI = findPixelsPerInchPeg(pts[0], pts[1]);
+		double width = resY/PPI;
+		double distDiag = .5*width/Math.tan(19.0935*Math.PI/180); //degrees to radians
+		double distLat = Math.sqrt(distDiag*distDiag - 3422.25); //use triangulation to find the lateral distance, magic number is deltaH squared
+		return distLat;
+	}
+	
+	/**
+	 * The RPi will return data in the format of four doubles; this converts that to two points
+	 */
+	private Point[] arrToPoints(double[] nums)
+	{
+		Point pt1 = new Point(nums[0], nums[1]);
+		Point pt2 = new Point(nums[2], nums[3]);
+		return new Point[] {pt1, pt2};
 	}
 }
