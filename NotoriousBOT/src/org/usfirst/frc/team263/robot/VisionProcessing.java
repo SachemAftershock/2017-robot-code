@@ -65,7 +65,7 @@ public class VisionProcessing
 		if(nums[3] < 0) return -1.0; //error handing from the Pi
 		
 		Point[] pts = arrToPoints(nums);
-		double PPI = findPixelsPerInchPeg(pts[0], pts[1]);
+		double PPI = findPixelsPerInchBoiler(pts[0], pts[1]);
 		double width = resY/PPI;
 		double distDiag = .5*width/Math.tan(19.0935*Math.PI/180); //degrees to radians
 		double distLat = Math.sqrt(distDiag*distDiag - 3422.25); //use triangulation to find the lateral distance, magic number is deltaH squared
