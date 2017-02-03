@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 
 public class Robot extends SampleRobot {
@@ -19,7 +20,8 @@ public class Robot extends SampleRobot {
 	MechanismControls mech;
 	BallShooter shooter;
 	boolean fieldOriented, previouslyPressed;
-
+	final double driftConstant;
+	
 	public Robot() {
 		// Initialize motor controller addresses
 		ballShooterMotor = new Talon(5);
@@ -41,8 +43,11 @@ public class Robot extends SampleRobot {
 		pDriver = new XboxController(0);
 		sDriver = new XboxController(1);
 		
+		// Initialize drift constant for rotational corrections in drivebase code
+		driftConstant = 0.005;
+		
 		// Initialize all necessary systems and mechanisms
-		drive = new MecanumDrive(frontRight, backRight, frontLeft, backLeft);
+		drive = new MecanumDrive(frontRight, backRight, frontLeft, backLeft, gyro, driftConstant);
 		shooter = new BallShooter(ballShooterMotor);
 		mech = new MechanismControls(shooter);
 		
@@ -50,10 +55,9 @@ public class Robot extends SampleRobot {
 		fieldOriented = false;
 		previouslyPressed = false;
 	}
-	
+	Timer t = new Timer();
 	@Override
 	public void operatorControl() {
-		gyro.reset();
 		while(isOperatorControl() && isEnabled()) {
 			// Determine if driver requests field-oriented driving or robot respective driving.
 			if (!previouslyPressed && pDriver.getStickButton(Hand.kLeft)) {
@@ -62,11 +66,7 @@ public class Robot extends SampleRobot {
 			previouslyPressed = pDriver.getStickButton(Hand.kLeft);
 			
 			// Drive robot's drivebase and mechanisms.
-			if (fieldOriented) {
-				drive.drive(pDriver, gyro);
-			} else {
-				drive.drive(pDriver);
-			}
+			drive.drive(pDriver, fieldOriented);
 			mech.drive(sDriver);
 		}
 	}
