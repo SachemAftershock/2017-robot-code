@@ -20,7 +20,7 @@ public class GearMechanism {
 	private DigitalInput downwardLimitSwitch, upwardLimitSwitch;
 	private boolean desireUp;
 	private SpeedController motor;
-	private final double MOTOR_SPEED = 0.25;
+	private final double MOTOR_SPEED = 0.9;
 
 	public GearMechanism(SpeedController motor, DigitalInput downwardLimitSwitch, DigitalInput upwardLimitSwitch) {
 		this.motor = motor;
@@ -32,6 +32,7 @@ public class GearMechanism {
 
 	public void toggleState() {
 		desireUp = !desireUp;
+		System.out.println("change state");
 	}
 	
 	public GearModes getState() {
@@ -39,16 +40,16 @@ public class GearMechanism {
 	}
 
 	public void run() {
-		if (!downwardLimitSwitch.get()) {
+		if (downwardLimitSwitch.get()) {
 			state = GearModes.eDown;
 		}
-		if (desireUp && upwardLimitSwitch.get()) {
+		if (desireUp && !upwardLimitSwitch.get()) {
 			state = GearModes.eGoingUp;
 		}
-		if (!upwardLimitSwitch.get()) {
+		if (upwardLimitSwitch.get()) {
 			state = GearModes.eUp;
 		}
-		if (!desireUp && downwardLimitSwitch.get()) {
+		if (!desireUp && !downwardLimitSwitch.get()) {
 			state = GearModes.eGoingDown;
 		}
 
