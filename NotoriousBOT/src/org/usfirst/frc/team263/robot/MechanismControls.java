@@ -14,12 +14,15 @@ public class MechanismControls {
 	private BallIntake intake;
 	private GearMechanism gearMechanism;
 	private RopeClimber ropeClimber;
+	private BallShooter shooter;
 	private Macros macros;
-	private boolean intakeAlreadyToggled;
+	private boolean intakeAlreadyToggled, emergencyModeToggled, gearMechanismToggled, emergencyMode;
 
 	/**
 	 * Instantiates master class
 	 * 
+	 * @param shooter
+	 *            BallShooter subsystem object
 	 * @param intake
 	 *            BallIntake mechanism object
 	 * @param gearMechanism
@@ -29,12 +32,17 @@ public class MechanismControls {
 	 * @param macros
 	 *            Macros container for all semi-autonomous routines
 	 */
-	public MechanismControls(BallIntake intake, GearMechanism gearMechanism, RopeClimber ropeClimber, Macros macros) {
+	public MechanismControls(BallShooter shooter, BallIntake intake, GearMechanism gearMechanism,
+			RopeClimber ropeClimber, Macros macros) {
+		this.shooter = shooter;
 		this.intake = intake;
 		this.gearMechanism = gearMechanism;
 		this.ropeClimber = ropeClimber;
 		this.macros = macros;
 		intakeAlreadyToggled = false;
+		emergencyModeToggled = false;
+		gearMechanismToggled = false;
+		emergencyMode = false;
 	}
 
 	/**
@@ -47,14 +55,31 @@ public class MechanismControls {
 		if (controller.getBumper(Hand.kLeft) && !intakeAlreadyToggled) {
 			intake.toggleEnable();
 		}
-		if (controller.getBButton()) {
-			macros.gearPegMacro();
-		} else if (controller.getAButton()) {
-			macros.shooterMacro();
+		if (controller.getBackButton() && !emergencyModeToggled) {
+			emergencyMode = !emergencyMode;
+		}
+		if (emergencyMode) {
+			LEDStrip.sendColor(LEDStrip.LEDMode.eRed);
+			if (controller.getBButton()) {
+				shooter.setMotorRPM(0.6);
+			} else {
+				shooter.setMotorRPM(0.0);
+			}
+			if (controller.getAButton() && gearMechanismToggled) {
+				gearMechanism.toggleState();
+			}
 		} else {
-			macros.disableAll();
+			if (controller.getBButton()) {
+				macros.gearPegMacro();
+			} else if (controller.getAButton()) {
+				macros.shooterMacro();
+			} else {
+				macros.disableAll();
+			}
+			LEDStrip.sendColor(LEDStrip.LEDMode.eRainbow);
 		}
 		intakeAlreadyToggled = controller.getBumper(Hand.kLeft);
+		emergencyModeToggled = controller.getBackButton();
 		ropeClimber.updateEnable(controller.getXButton());
 
 		intake.run();

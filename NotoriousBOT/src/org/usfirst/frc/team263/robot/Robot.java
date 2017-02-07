@@ -70,7 +70,7 @@ public class Robot extends SampleRobot {
 		ballIntake = new BallIntake(ballIntakeMotor);
 		gearMechanism = new GearMechanism(gearMechanismMotor, bottomGearLS, topGearLS);
 		macros = new Macros(gyro, CAMERA_X, CAMERA_Y, drive, shooter, gearMechanism, new XboxController[] { pDriver, sDriver });
-		mech = new MechanismControls(ballIntake, gearMechanism, ropeClimber, macros);
+		mech = new MechanismControls(shooter, ballIntake, gearMechanism, ropeClimber, macros);
 
 		// Initialize booleans for field oriented toggle
 		fieldOriented = false;
