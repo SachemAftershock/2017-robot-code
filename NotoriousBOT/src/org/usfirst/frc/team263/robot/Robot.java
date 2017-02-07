@@ -1,78 +1,100 @@
 package org.usfirst.frc.team263.robot;
 
+import com.ctre.CANTalon;
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.SerialPort;
-import edu.wpi.first.wpilibj.Spark;
-import edu.wpi.first.wpilibj.Talon;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.XboxController;
 
 public class Robot extends SampleRobot {
 
 	AHRS gyro;
-	Talon frontRight, backRight, ballShooterMotor;
-	Spark frontLeft, backLeft;
+	VictorSP frontRight, frontLeft, backRight, backLeft, agitator, ballIntakeMotor;
+	CANTalon ballShooterMotor, ropeClimberMotor, gearMechanismMotor;
 	XboxController pDriver, sDriver;
 	MecanumDrive drive;
 	MechanismControls mech;
 	BallShooter shooter;
+	RopeClimber ropeClimber;
+	BallIntake ballIntake;
+	GearMechanism gearMechanism;
+	DigitalInput leftClimberLS, rightClimberLS, climberSprockectLS, bottomGearLS, topGearLS;
+	Encoder shooterEncoder;
+	Macros macros;
 	boolean fieldOriented, previouslyPressed;
-	final double driftConstant;
-	
+	final double DRIFT_CONSTANT = 0.005;
+	final int CAMERA_X = 640, CAMERA_Y = 480;
+
 	public Robot() {
 		// Initialize motor controller addresses
-		ballShooterMotor = new Talon(5);
-		frontRight = new Talon(6);
-		backRight = new Talon(7);
-		frontLeft = new Spark(8);
-		backLeft = new Spark(9);
-		
+		ballShooterMotor = new CANTalon(0);
+		ropeClimberMotor = new CANTalon(1);
+		gearMechanismMotor = new CANTalon(2);
+		frontRight = new VictorSP(0);
+		backRight = new VictorSP(1);
+		frontLeft = new VictorSP(2);
+		backLeft = new VictorSP(3);
+		agitator = new VictorSP(4);
+		ballIntakeMotor = new VictorSP(5);
+
+		// Initialize all DIO based elements
+		shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k1X);
+		climberSprockectLS = new DigitalInput(2);
+		rightClimberLS = new DigitalInput(3);
+		leftClimberLS = new DigitalInput(4);
+		bottomGearLS = new DigitalInput(5);
+		topGearLS = new DigitalInput(6);
+
 		// Determine which motors are inverted empirically
 		frontRight.setInverted(true);
 		backRight.setInverted(false);
 		frontLeft.setInverted(true);
 		backLeft.setInverted(false);
-		
+
 		// Initialize navX MXP to be primary gyroscope
 		gyro = new AHRS(SerialPort.Port.kMXP);
-		
-		// Initialize controllers to correct ports (!!!)
+
+		// Initialize controllers to correct ports
 		pDriver = new XboxController(0);
 		sDriver = new XboxController(1);
-		
-		// Initialize drift constant for rotational corrections in drivebase code
-		driftConstant = 0.005;
-		
+
 		// Initialize all necessary systems and mechanisms
-		drive = new MecanumDrive(frontRight, backRight, frontLeft, backLeft, gyro, driftConstant);
-		shooter = new BallShooter(ballShooterMotor);
-		mech = new MechanismControls(shooter);
-		
+		drive = new MecanumDrive(frontRight, backRight, frontLeft, backLeft, gyro, DRIFT_CONSTANT);
+		shooter = new BallShooter(ballShooterMotor, agitator, shooterEncoder);
+		ropeClimber = new RopeClimber(ropeClimberMotor, leftClimberLS, rightClimberLS);
+		ballIntake = new BallIntake(ballIntakeMotor);
+		gearMechanism = new GearMechanism(gearMechanismMotor, bottomGearLS, topGearLS);
+		macros = new Macros(gyro, CAMERA_X, CAMERA_Y, drive, shooter, gearMechanism, new XboxController[] { pDriver, sDriver });
+		mech = new MechanismControls(ballIntake, gearMechanism, ropeClimber, macros);
+
 		// Initialize booleans for field oriented toggle
 		fieldOriented = false;
 		previouslyPressed = false;
 	}
-	Timer t = new Timer();
+
 	@Override
 	public void operatorControl() {
-		while(isOperatorControl() && isEnabled()) {
-			// Determine if driver requests field-oriented driving or robot respective driving.
+		while (isOperatorControl() && isEnabled()) {
+			// Determine if driver requests field-oriented driving or robot
+			// respective driving.
 			if (!previouslyPressed && pDriver.getStickButton(Hand.kLeft)) {
 				fieldOriented = !fieldOriented;
 			}
 			previouslyPressed = pDriver.getStickButton(Hand.kLeft);
-			
+
 			// Drive robot's drivebase and mechanisms.
 			drive.drive(pDriver, fieldOriented);
 			mech.drive(sDriver);
 		}
 	}
-	
+
 	@Override
 	public void autonomous() {
-		
+
 	}
 }
