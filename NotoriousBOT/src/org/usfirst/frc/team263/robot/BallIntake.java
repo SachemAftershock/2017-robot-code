@@ -12,20 +12,27 @@ import edu.wpi.first.wpilibj.SpeedController;
 public class BallIntake {
 	private SpeedController motor;
 	private boolean isEnabled;
-	
+
 	/**
 	 * Instantiate BallIntake object
-	 * @param motor -- motor 
+	 * 
+	 * @param motor SpeedController which controls BAG Motor
 	 */
 	public BallIntake(SpeedController motor) {
 		this.motor = motor;
 		isEnabled = false;
 	}
-	
+
+	/**
+	 * Toggles the state of the intake motor (on or off)
+	 */
 	public void toggleEnable() {
 		isEnabled = !isEnabled;
 	}
-	
+
+	/**
+	 * Sets motor speed of ball intake according to enabled status
+	 */
 	public void run() {
 		motor.set(isEnabled ? 1.0 : 0.0);
 	}

@@ -22,6 +22,16 @@ public class GearMechanism {
 	private SpeedController motor;
 	private final double MOTOR_SPEED = 0.9;
 
+	/**
+	 * Initialize GearMechanism object to control Gear subsystem
+	 * 
+	 * @param motor
+	 *            SpeedController object controlling window motor
+	 * @param downwardLimitSwitch
+	 *            Limit switch on bottom stop of system
+	 * @param upwardLimitSwitch
+	 *            Limit switch on top of system
+	 */
 	public GearMechanism(SpeedController motor, DigitalInput downwardLimitSwitch, DigitalInput upwardLimitSwitch) {
 		this.motor = motor;
 		this.downwardLimitSwitch = downwardLimitSwitch;
@@ -30,15 +40,26 @@ public class GearMechanism {
 		desireUp = false;
 	}
 
+	/**
+	 * Toggles whether the gear mechanism should currently be going up or down.
+	 */
 	public void toggleState() {
 		desireUp = !desireUp;
 		System.out.println("change state");
 	}
-	
+
+	/**
+	 * Gets current state of system, used for debugging
+	 * 
+	 * @return Current GearModes state of system
+	 */
 	public GearModes getState() {
 		return state;
 	}
 
+	/**
+	 * Contains logic for movement of GearMech gate based upon current set state
+	 */
 	public void run() {
 		if (downwardLimitSwitch.get()) {
 			state = GearModes.eDown;

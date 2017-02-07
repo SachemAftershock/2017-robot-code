@@ -27,6 +27,24 @@ public class Macros {
 	private boolean isRunning;
 	private double distanceGearPeg, strafeDist, RPMNeeded;
 
+	/**
+	 * Instantiate Macros object
+	 * 
+	 * @param gyro
+	 *            AHRS device to measure yaw
+	 * @param cameraResX
+	 *            Number of pixels in x-direction returned by camera
+	 * @param cameraResY
+	 *            Number of pixels in y-direction returned by camera
+	 * @param drive
+	 *            MecanumDrive object controlling robot's drivebase
+	 * @param ballShooter
+	 *            BallShooter object to control robot's flywheel
+	 * @param gearMechanism
+	 *            GearMechanism object to control Gear subsystem
+	 * @param joysticks
+	 *            XboxControllers to alert drivers on of any errors
+	 */
 	public Macros(AHRS gyro, int cameraResX, int cameraResY, MecanumDrive drive, BallShooter ballShooter,
 			GearMechanism gearMechanism, XboxController[] joysticks) {
 		this.gyro = gyro;
@@ -95,7 +113,7 @@ public class Macros {
 	}
 
 	/**
-	 * Starting from facing the boiler, can shoot with the correct power
+	 * Starting from facing the boiler, can shoot with the correct power.
 	 */
 	public void shooterMacro() {
 		if (stateCounter == 0) {

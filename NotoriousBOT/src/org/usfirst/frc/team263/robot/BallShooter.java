@@ -20,10 +20,14 @@ public class BallShooter {
 	private volatile boolean isUpToSpeed, isAgitatorOn;
 
 	/**
-	 * Instantiates BallShooter object.
+	 * Instantiates BallShooter object
 	 * 
-	 * @param m
-	 *            -- shooterMotor controller for flywheel
+	 * @param shooterMotor
+	 *            SpeedController for flywheel
+	 * @param agitatorMotor
+	 *            SpeedController for agitator in hopper
+	 * @param enc
+	 *            Rotary encoder on shooter shaft
 	 */
 	public BallShooter(SpeedController shooterMotor, SpeedController agitatorMotor, Encoder enc) {
 		this.shooterMotor = shooterMotor;
@@ -34,12 +38,28 @@ public class BallShooter {
 		isAgitatorOn = false;
 	}
 
+	/**
+	 * Disables shooter mechanism if currently spinning
+	 * 
+	 * <p>
+	 * Interrupts any PID Controller that may currently be running, then
+	 * disables motors.
+	 * </p>
+	 */
 	public void disable() {
-		PIDLoop.interrupt();
+		if (PIDLoop != null) {
+			PIDLoop.interrupt();
+		}
 		shooterMotor.set(0);
 		agitatorMotor.set(0);
 	}
 
+	/**
+	 * Creates or maintains rotation rate if within epsilon
+	 * 
+	 * @param rpm
+	 *            Desired rotation rate in rotations per minute
+	 */
 	public void setMotorRPM(double rpm) {
 		if (Math.abs(rpm - setRPM) > epsilon) {
 			PIDLoop.interrupt();
@@ -47,14 +67,30 @@ public class BallShooter {
 		}
 	}
 
+	/**
+	 * @return true if current rotation rate is within epsilon, false otherwise.
+	 */
 	public boolean isUpToSpeed() {
 		return isUpToSpeed;
 	}
 
-	public void setAgitator(boolean on) {
-		isAgitatorOn = on;
+	/**
+	 * Sets agitator in hopper to on or off
+	 * 
+	 * @param enabled
+	 *            true if motor should be enabled, false otherwise
+	 */
+	public void setAgitator(boolean enabled) {
+		isAgitatorOn = enabled;
 	}
 
+	/**
+	 * PID Class to control PID on flywheel shooter
+	 * 
+	 * @author Dan Waxman
+	 * @since 02-04-2017
+	 * @version 0.1
+	 */
 	private class VelocityPID extends Thread {
 		private double desiredRate, Kp, Ki, Kd, integral;
 		private Encoder inputDevice;
@@ -74,12 +110,12 @@ public class BallShooter {
 		}
 
 		public void run() {
-			double error = desiredRate - inputDevice.get();
+			double error = desiredRate - inputDevice.getRate();
 			while (!this.isInterrupted()) {
 				synchronized (this) {
 					integral += error;
 					double previousError = error;
-					error = desiredRate - inputDevice.get();
+					error = desiredRate - inputDevice.getRate();
 					isUpToSpeed = Math.abs(error) < epsilon;
 					shooterMotor.set(Kp * error + Ki * integral + Kd * (error - previousError));
 					agitatorMotor.set(isAgitatorOn ? 1.0 : 0.0);

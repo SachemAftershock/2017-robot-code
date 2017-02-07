@@ -27,15 +27,17 @@ public class MecanumDrive {
 	 * to be addressed.
 	 * 
 	 * @param frontRight
-	 *            -- front right wheel motor controller
+	 *            front right wheel motor controller
 	 * @param backRight
-	 *            -- back right wheel motor controller
+	 *            back right wheel motor controller
 	 * @param frontLeft
-	 *            -- front left wheel motor controller
+	 *            front left wheel motor controller
 	 * @param backLeft
-	 *            -- back left wheel motor controller
+	 *            back left wheel motor controller
+	 * @param gyro
+	 *            AHRS device to read yaw from
 	 * @param driftConstant
-	 *            -- proportionality constant for angle drift of drivebase
+	 *            proportionality constant for angle drift of drivebase
 	 */
 	public MecanumDrive(SpeedController frontRight, SpeedController backRight, SpeedController frontLeft,
 			SpeedController backLeft, AHRS gyro, double driftConstant) {
@@ -53,13 +55,15 @@ public class MecanumDrive {
 	 * to be addressed.
 	 * 
 	 * @param frontRight
-	 *            -- front right wheel motor controller
+	 *            front right wheel motor controller
 	 * @param backRight
-	 *            -- back right wheel motor controller
+	 *            back right wheel motor controller
 	 * @param frontLeft
-	 *            -- front left wheel motor controller
+	 *            front left wheel motor controller
 	 * @param backLeft
-	 *            -- back left wheel motor controller
+	 *            back left wheel motor controller
+	 * @param gyro
+	 *            AHRS device to read yaw from
 	 */
 	public MecanumDrive(SpeedController frontRight, SpeedController backRight, SpeedController frontLeft,
 			SpeedController backLeft, AHRS gyro) {
@@ -83,12 +87,9 @@ public class MecanumDrive {
 	 * </p>
 	 * 
 	 * @param controller
-	 *            -- Xbox controller to input drive controls
-	 * @param gyro
-	 *            -- NavX device to read current angle in relation to the field
-	 *            from.
+	 *            Xbox controller to input drive controls
 	 * @param fieldCentric
-	 *            -- true if field centric controls, false otherwise.
+	 *            true if field centric controls, false otherwise.
 	 */
 	public void drive(XboxController controller, boolean fieldCentric) {
 		if (!autoMovement) {
@@ -156,7 +157,7 @@ public class MecanumDrive {
 	 * </p>
 	 * 
 	 * @param array
-	 *            -- array of values to normalize from [-1,1] scale
+	 *            array of values to normalize from [-1,1] scale
 	 */
 	private void normalize(double[] array) {
 		boolean normFlag = false;
@@ -192,9 +193,9 @@ public class MecanumDrive {
 	 * Creates artificial absolute deadband on values.
 	 * 
 	 * @param value
-	 *            -- value to create deadband on
+	 *            value to create deadband on
 	 * @param deadband
-	 *            -- minimum number that <code>abs(value)</code> must exceed
+	 *            minimum number that <code>abs(value)</code> must exceed
 	 * @return value if <code>abs(value)</code> is greater than deadband, 0
 	 *         otherwise
 	 */

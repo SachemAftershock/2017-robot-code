@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.I2C;
  * 
  * @author Rohan Bapat
  * @author Dan Waxman
+ * @version 1.3
  * @since 01/29/17
  */
 public class LEDStrip {
@@ -21,9 +22,10 @@ public class LEDStrip {
 	}
 
 	/**
-	 * Mode to set the LED in.
+	 * Send current desired LED Strip mode over I2C to Arduino
 	 * 
 	 * @param color
+	 *            LEDMode enum element to set LEDStrip
 	 */
 	public static void sendColor(LEDMode color) {
 		// Test to make sure color is different than current mode to avoid

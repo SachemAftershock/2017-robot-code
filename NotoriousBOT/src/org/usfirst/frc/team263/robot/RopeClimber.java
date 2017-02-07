@@ -19,7 +19,12 @@ public class RopeClimber {
 	/**
 	 * Instantiate BallIntake object
 	 * 
-	 * @param motor SpeedController object to control ball intake
+	 * @param motor
+	 *            SpeedController object to control ball intake
+	 * @param leftLimitSwitch
+	 *            Hard stop limit switch on left side
+	 * @param rightLimitSwitch
+	 *            Hard stop limit switch on right side
 	 */
 	public RopeClimber(SpeedController motor, DigitalInput leftLimitSwitch, DigitalInput rightLimitSwitch) {
 		this.motor = motor;
@@ -28,11 +33,20 @@ public class RopeClimber {
 		isEnabled = false;
 	}
 
+	/**
+	 * Updates status of lift motor
+	 * 
+	 * @param enable
+	 *            true if desired to be climbing, false otherwise
+	 */
 	public void updateEnable(boolean enable) {
 		isEnabled = enable;
 	}
 
+	/**
+	 * Updates motor output of climber CIM
+	 */
 	public void run() {
-		motor.set(isEnabled  && (leftLimitSwitch.get() && rightLimitSwitch.get()) ? 1.0 : 0.0);
+		motor.set(isEnabled && (!leftLimitSwitch.get() && !rightLimitSwitch.get()) ? 1.0 : 0.0);
 	}
 }

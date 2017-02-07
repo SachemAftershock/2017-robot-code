@@ -12,6 +12,14 @@ import org.opencv.core.Point;
 public class CameraCalculations {
 	private double resX, resY;
 
+	/**
+	 * Intantiate CameraCalulations object
+	 * 
+	 * @param resX
+	 *            resolution of camera in x direction
+	 * @param resY
+	 *            resolution of camera in y direction
+	 */
 	public CameraCalculations(double resX, double resY) {
 		this.resX = resX;
 		this.resY = resY;
@@ -20,6 +28,10 @@ public class CameraCalculations {
 	/**
 	 * Given a point of the camera's native co-ords, returns a modified one with
 	 * a central origin and a domain/range of [-1,1]
+	 * 
+	 * @param orig
+	 *            Point given in native coordinate system
+	 * @return scaled point
 	 */
 	public Point rawToScaled(Point orig) {
 		double rawX = orig.x;
@@ -34,6 +46,10 @@ public class CameraCalculations {
 	/**
 	 * Given a converted point, finds the distance to move that (when combined
 	 * with the findAngleDegrees) will center the target at (0,0)
+	 * 
+	 * @param orig
+	 *            Converted point to find distance from center
+	 * @return distance from center in scaled system
 	 */
 	public double findDistanceToCenter(Point orig) {
 		double x = orig.x;
@@ -47,6 +63,10 @@ public class CameraCalculations {
 	/**
 	 * Given a converted point, finds the angle to move that (when combined with
 	 * the findDistanceToCenter) will center the target at (0,0)
+	 * 
+	 * @param orig
+	 *            Converted point to find phi of
+	 * @return Angle offset in degrees
 	 */
 	public double findAngleDegrees(Point orig) {
 		double x = orig.x;
@@ -65,6 +85,10 @@ public class CameraCalculations {
 	/**
 	 * Given a converted point, returns the polar (r, theta) of its location
 	 * relative to the center
+	 * 
+	 * @param orig
+	 *            Converted point to find polar coordinate of
+	 * @return Polar point
 	 */
 	public Point findPolarPoint(Point orig) {
 		double r = findDistanceToCenter(orig);
@@ -75,6 +99,12 @@ public class CameraCalculations {
 
 	/**
 	 * Given two points, finds the exact center between them
+	 * 
+	 * @param p1
+	 *            First reference point
+	 * @param p2
+	 *            Second reference point
+	 * @return Center of p1 and p2
 	 */
 	public Point findCenterPoint(Point p1, Point p2) {
 		double x = (p1.x + p2.x) / 2;
