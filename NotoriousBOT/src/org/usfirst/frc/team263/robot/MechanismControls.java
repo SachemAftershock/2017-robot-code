@@ -1,7 +1,6 @@
 package org.usfirst.frc.team263.robot;
 
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 /**
  * Master class for all mechanisms on Notorious B.O.T.
@@ -11,12 +10,11 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
  * @since 01-20-17
  */
 public class MechanismControls {
-	private BallIntake intake;
 	private GearMechanism gearMechanism;
 	private RopeClimber ropeClimber;
 	private BallShooter shooter;
 	private Macros macros;
-	private boolean intakeAlreadyToggled, emergencyModeToggled, gearMechanismToggled, emergencyMode;
+	private boolean emergencyModeToggled, gearMechanismToggled, emergencyMode;
 
 	/**
 	 * Instantiates master class
@@ -32,14 +30,12 @@ public class MechanismControls {
 	 * @param macros
 	 *            Macros container for all semi-autonomous routines
 	 */
-	public MechanismControls(BallShooter shooter, BallIntake intake, GearMechanism gearMechanism,
+	public MechanismControls(BallShooter shooter, GearMechanism gearMechanism,
 			RopeClimber ropeClimber, Macros macros) {
 		this.shooter = shooter;
-		this.intake = intake;
 		this.gearMechanism = gearMechanism;
 		this.ropeClimber = ropeClimber;
 		this.macros = macros;
-		intakeAlreadyToggled = false;
 		emergencyModeToggled = false;
 		gearMechanismToggled = false;
 		emergencyMode = false;
@@ -52,9 +48,6 @@ public class MechanismControls {
 	 *            controller to read inputs from for various routines.
 	 */
 	public void drive(XboxController controller) {
-		if (controller.getBumper(Hand.kLeft) && !intakeAlreadyToggled) {
-			intake.toggleEnable();
-		}
 		if (controller.getBackButton() && !emergencyModeToggled) {
 			emergencyMode = !emergencyMode;
 		}
@@ -65,7 +58,7 @@ public class MechanismControls {
 			} else {
 				shooter.setMotorRPM(0.0);
 			}
-			if (controller.getAButton() && gearMechanismToggled) {
+			if (controller.getAButton() && !gearMechanismToggled) {
 				gearMechanism.toggleState();
 			}
 		} else {
@@ -78,11 +71,10 @@ public class MechanismControls {
 			}
 			LEDStrip.sendColor(LEDStrip.LEDMode.eRainbow);
 		}
-		intakeAlreadyToggled = controller.getBumper(Hand.kLeft);
 		emergencyModeToggled = controller.getBackButton();
 		ropeClimber.updateEnable(controller.getXButton());
+		gearMechanismToggled = controller.getAButton();
 
-		intake.run();
 		ropeClimber.run();
 		gearMechanism.run();
 	}

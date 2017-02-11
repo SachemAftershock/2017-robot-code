@@ -14,14 +14,13 @@ import edu.wpi.first.wpilibj.XboxController;
 public class Robot extends SampleRobot {
 
 	AHRS gyro;
-	VictorSP frontRight, frontLeft, backRight, backLeft, agitator, ballIntakeMotor;
+	VictorSP frontRight, frontLeft, backRight, backLeft, agitator; 
 	CANTalon ballShooterMotor, ropeClimberMotor, gearMechanismMotor;
 	XboxController pDriver, sDriver;
 	MecanumDrive drive;
 	MechanismControls mech;
 	BallShooter shooter;
 	RopeClimber ropeClimber;
-	BallIntake ballIntake;
 	GearMechanism gearMechanism;
 	DigitalInput leftClimberLS, rightClimberLS, climberSprockectLS, bottomGearLS, topGearLS;
 	Encoder shooterEncoder;
@@ -40,7 +39,6 @@ public class Robot extends SampleRobot {
 		frontLeft = new VictorSP(2);
 		backLeft = new VictorSP(3);
 		agitator = new VictorSP(4);
-		ballIntakeMotor = new VictorSP(5);
 
 		// Initialize all DIO based elements
 		shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k1X);
@@ -67,10 +65,9 @@ public class Robot extends SampleRobot {
 		drive = new MecanumDrive(frontRight, backRight, frontLeft, backLeft, gyro, DRIFT_CONSTANT);
 		shooter = new BallShooter(ballShooterMotor, agitator, shooterEncoder);
 		ropeClimber = new RopeClimber(ropeClimberMotor, leftClimberLS, rightClimberLS);
-		ballIntake = new BallIntake(ballIntakeMotor);
 		gearMechanism = new GearMechanism(gearMechanismMotor, bottomGearLS, topGearLS);
 		macros = new Macros(gyro, CAMERA_X, CAMERA_Y, drive, shooter, gearMechanism, new XboxController[] { pDriver, sDriver });
-		mech = new MechanismControls(shooter, ballIntake, gearMechanism, ropeClimber, macros);
+		mech = new MechanismControls(shooter, gearMechanism, ropeClimber, macros);
 
 		// Initialize booleans for field oriented toggle
 		fieldOriented = false;

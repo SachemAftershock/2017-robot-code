@@ -237,11 +237,18 @@ public class MecanumDrive {
 				error = distance(inputDevice.getYaw(), setPoint);
 				double u = Kp * error + Ki * integral + Kd * (error - previousError);
 				synchronized (this) {
+					double[] motorSpeeds = new double[motors.length];
 					for (int i = 0; i < motors.length; i++) {
-						motors[i].set(u * multipliers[i]);
+						motorSpeeds[i] = u * multipliers[i];
+					}
+					normalize(motorSpeeds);
+					for (int i = 0; i < motors.length; i++) {
+						motors[i].set(motorSpeeds[i]);
 					}
 				}
 			}
+			motors = null;
+			inputDevice = null;
 		}
 
 		private double distance(double alpha, double beta) {

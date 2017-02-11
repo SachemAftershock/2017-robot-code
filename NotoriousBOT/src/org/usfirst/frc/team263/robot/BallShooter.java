@@ -1,6 +1,7 @@
 package org.usfirst.frc.team263.robot;
 
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.SpeedController;
 
 /**
@@ -107,20 +108,24 @@ public class BallShooter {
 			this.Kd = Kd;
 			epsilon = 25;
 			integral = 0;
+			
+			inputDevice.setPIDSourceType(PIDSourceType.kRate);
 		}
 
 		public void run() {
-			double error = desiredRate - inputDevice.getRate();
+			double error = desiredRate - inputDevice.pidGet();
 			while (!this.isInterrupted()) {
 				synchronized (this) {
 					integral += error;
 					double previousError = error;
-					error = desiredRate - inputDevice.getRate();
+					error = desiredRate - inputDevice.pidGet();
 					isUpToSpeed = Math.abs(error) < epsilon;
 					shooterMotor.set(Kp * error + Ki * integral + Kd * (error - previousError));
 					agitatorMotor.set(isAgitatorOn ? 1.0 : 0.0);
 				}
 			}
+			shooterMotor = null;
+			inputDevice = null;
 		}
 	}
 }
