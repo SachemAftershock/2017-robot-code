@@ -15,7 +15,8 @@ public class Robot extends SampleRobot {
 
 	AHRS gyro;
 	VictorSP frontRight, frontLeft, backRight, backLeft, agitator; 
-	CANTalon ballShooterMotor, ropeClimberMotor, gearMechanismMotor;
+	CANTalon ballShooterMotor, ropeClimberMotor;
+	VictorSP gearMechanismMotor;
 	XboxController pDriver, sDriver;
 	MecanumDrive drive;
 	MechanismControls mech;
@@ -32,13 +33,13 @@ public class Robot extends SampleRobot {
 	public Robot() {
 		// Initialize motor controller addresses
 		ballShooterMotor = new CANTalon(0);
-		ropeClimberMotor = new CANTalon(1);
-		gearMechanismMotor = new CANTalon(2);
+		ropeClimberMotor = new CANTalon(2);
 		frontRight = new VictorSP(0);
 		backRight = new VictorSP(1);
 		frontLeft = new VictorSP(2);
 		backLeft = new VictorSP(3);
-		agitator = new VictorSP(4);
+		gearMechanismMotor = new VictorSP(4);
+		agitator = new VictorSP(5);
 
 		// Initialize all DIO based elements
 		shooterEncoder = new Encoder(0, 1, false, Encoder.EncodingType.k1X);
@@ -53,6 +54,7 @@ public class Robot extends SampleRobot {
 		backRight.setInverted(false);
 		frontLeft.setInverted(true);
 		backLeft.setInverted(false);
+		ropeClimberMotor.enableBrakeMode(true);
 
 		// Initialize navX MXP to be primary gyroscope
 		gyro = new AHRS(SerialPort.Port.kMXP);
@@ -92,6 +94,14 @@ public class Robot extends SampleRobot {
 
 	@Override
 	public void autonomous() {
-
+		while (isAutonomous() && isEnabled()) {
+			System.out.println(gyro.getDisplacementX());
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 }

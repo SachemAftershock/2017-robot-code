@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.XboxController;
  * Drivebase code for a mecanum drivebase. Supports field-centric and
  * non-oriented driving methods.
  * 
- * @version 1.0
+ * @version 1.1
  * @author Dan Waxman
  * @since 01-20-17
  */
@@ -21,6 +21,10 @@ public class MecanumDrive {
 	public volatile boolean autoMovement;
 	private AHRS mGyro;
 	private final double TUNED_KP = 1, TUNED_KI = 1, TUNED_KD = 1;
+
+	public enum PIDModes {
+		eRotate, eLinearX, eLinearY;
+	}
 
 	/**
 	 * Construct instance of drivebase code with appropriate motor controllers
@@ -126,23 +130,29 @@ public class MecanumDrive {
 			mBackLeft.set(speeds[3]);
 
 			if (controller.getXButton()) {
-				rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, 90,
-						new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
-						new double[] { 1, 1, -1, -1 });
-				autoMovement = true;
-				rotationThread.start();
+				synchronized (this) {
+					autoMovement = true;
+					rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, -90,
+							new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
+							new double[] { 1, 1, -1, -1 });
+					rotationThread.start();
+				}
 			} else if (controller.getBButton()) {
-				rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, -90,
-						new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
-						new double[] { 1, 1, -1, -1 });
-				autoMovement = true;
-				rotationThread.start();
+				synchronized (this) {
+					autoMovement = true;
+					rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, 90,
+							new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
+							new double[] { 1, 1, -1, -1 });
+					rotationThread.start();
+				}
 			} else if (controller.getYButton()) {
-				rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, 0,
-						new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
-						new double[] { 1, 1, -1, -1 });
-				autoMovement = true;
-				rotationThread.start();
+				synchronized (this) {
+					autoMovement = true;
+					rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, 0,
+							new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
+							new double[] { 1, 1, -1, -1 });
+					rotationThread.start();
+				}
 			}
 		} else if (controller.getAButton()) {
 			autoMovement = false;
@@ -178,15 +188,33 @@ public class MecanumDrive {
 	}
 
 	public void autoStrafe(double distance) {
-
+		synchronized (this) {
+			autoMovement = true;
+			rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, distance,
+					new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
+					new double[] { -1, 1, 1, -1 }, PIDModes.eLinearX);
+			rotationThread.start();
+		}
 	}
 
 	public void autoDrive(double distance) {
-
+		synchronized (this) {
+			autoMovement = true;
+			rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, distance,
+					new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
+					new double[] { 1, 1, 1, 1 }, PIDModes.eLinearY);
+			rotationThread.start();
+		}
 	}
 
 	public void autoRotate(double theta) {
-
+		synchronized (this) {
+			autoMovement = true;
+			rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, theta,
+					new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
+					new double[] { 1, 1, -1, -1 }, PIDModes.eRotate);
+			rotationThread.start();
+		}
 	}
 
 	/**
@@ -211,10 +239,11 @@ public class MecanumDrive {
 	 * @since 01/26/17
 	 */
 	private class PIDController extends Thread {
-		private double Kp, Ki, Kd, setPoint, integral, previousError, epsilon;
+		private double Kp, Ki, Kd, setPoint, integral, previousError, epsilon, initialDisplacement;
 		private AHRS inputDevice;
 		private SpeedController[] motors;
 		private double[] multipliers;
+		private PIDModes mode;
 
 		public PIDController(double Kp, double Ki, double Kd, AHRS inputDevice, double setPoint,
 				SpeedController[] motors, double[] multipliers) {
@@ -225,16 +254,53 @@ public class MecanumDrive {
 			this.setPoint = setPoint;
 			this.motors = motors;
 			this.multipliers = multipliers;
+			this.mode = PIDModes.eRotate;
 			integral = 0;
-			previousError = setPoint - inputDevice.getYaw();
+			previousError = setPoint - rotateError(inputDevice.getYaw(), setPoint);
 			epsilon = 5;
 		}
 
+		public PIDController(double Kp, double Ki, double Kd, AHRS inputDevice, double setPoint,
+				SpeedController[] motors, double[] multipliers, PIDModes mode) {
+			this.Kp = Kp;
+			this.Ki = Ki;
+			this.Kd = Kd;
+			this.inputDevice = inputDevice;
+			this.setPoint = setPoint;
+			this.motors = motors;
+			this.multipliers = multipliers;
+			this.mode = mode;
+			integral = 0;
+			epsilon = 5;
+			if (mode.equals(PIDModes.eRotate)) {
+				previousError = rotateError(inputDevice.getYaw(), setPoint);
+			} else if (mode.equals(PIDModes.eLinearX)) {
+				initialDisplacement = inputDevice.getDisplacementX();
+				previousError = linearError(setPoint, inputDevice.getDisplacementX() - initialDisplacement);
+			} else {
+				initialDisplacement = inputDevice.getDisplacementY();
+				previousError = linearError(setPoint, inputDevice.getDisplacementY() - initialDisplacement);
+			}
+		}
+
 		public void run() {
-			double error = distance(inputDevice.getYaw(), setPoint);
+			double error;
+			if (mode.equals(PIDModes.eRotate)) {
+				error = rotateError(inputDevice.getYaw(), setPoint);
+			} else if (mode.equals(PIDModes.eLinearX)) {
+				error = linearError(setPoint, inputDevice.getDisplacementX() - initialDisplacement);
+			} else {
+				error = linearError(setPoint, inputDevice.getDisplacementY() - initialDisplacement);
+			}
 			while (Math.abs(error) > epsilon && autoMovement) {
 				integral += error;
-				error = distance(inputDevice.getYaw(), setPoint);
+				if (mode.equals(PIDModes.eRotate)) {
+					error = rotateError(inputDevice.getYaw(), setPoint);
+				} else if (mode.equals(PIDModes.eLinearX)) {
+					error = linearError(setPoint, inputDevice.getDisplacementX() - initialDisplacement);
+				} else {
+					error = linearError(setPoint, inputDevice.getDisplacementY() - initialDisplacement);
+				}
 				double u = Kp * error + Ki * integral + Kd * (error - previousError);
 				synchronized (this) {
 					double[] motorSpeeds = new double[motors.length];
@@ -249,9 +315,14 @@ public class MecanumDrive {
 			}
 			motors = null;
 			inputDevice = null;
+			autoMovement = false;
 		}
 
-		private double distance(double alpha, double beta) {
+		private double linearError(double point1, double point2) {
+			return point2 - point1;
+		}
+
+		private double rotateError(double alpha, double beta) {
 			double ret = alpha - beta;
 			if (ret < -180) {
 				ret += 360;

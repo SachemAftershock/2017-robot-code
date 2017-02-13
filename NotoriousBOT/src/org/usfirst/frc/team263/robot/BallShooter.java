@@ -120,7 +120,8 @@ public class BallShooter {
 					double previousError = error;
 					error = desiredRate - inputDevice.pidGet();
 					isUpToSpeed = Math.abs(error) < epsilon;
-					shooterMotor.set(Kp * error + Ki * integral + Kd * (error - previousError));
+					double u = Kp * error + Ki * integral + Kd * (error - previousError);
+					shooterMotor.set(Math.abs(u) > 1 ? Math.signum(u) : u);
 					agitatorMotor.set(isAgitatorOn ? 1.0 : 0.0);
 				}
 			}
