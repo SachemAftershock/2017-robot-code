@@ -5,6 +5,7 @@
 #define NUM_LEDS 265
 #define DATA_PIN 6
 #define COLOR_ORDER GRB
+#define BULLET_BUFFER 4
 
 Timer t;
 
@@ -213,5 +214,28 @@ void receiveEvent(int howMany)
     //not sure if it should be a normal or unsigned char
 
     processCommand(state);
+  }
+}
+
+void bullet(byte r, byte g, byte b)
+{
+  CRGB color = CRGB(r, g, b);
+  for (int i = 0; i < BULLET_BUFFER; i++) 
+  {
+    leds[i] = color;
+  }
+  FastLED.show();
+  for (int i = BULLET_BUFFER; i < NUM_LEDS; i++) 
+  {
+    leds[i-BULLET_BUFFER] = CRGB::Black;
+    leds[i] = color;
+    FastLED.show();
+    wait(10);
+  }
+  for (int i = NUM_LEDS - BULLET_BUFFER; i < NUM_LEDS; i++)
+  {
+    leds[i] = CRGB::Black;
+    FastLED.show();
+    wait(10);
   }
 }
