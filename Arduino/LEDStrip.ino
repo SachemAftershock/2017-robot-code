@@ -223,6 +223,7 @@ void bullet(byte r, byte g, byte b)
   for (int i = 0; i < BULLET_BUFFER; i++) 
   {
     leds[i] = color;
+    wait(10);
   }
   FastLED.show();
   for (int i = BULLET_BUFFER; i < NUM_LEDS; i++) 
