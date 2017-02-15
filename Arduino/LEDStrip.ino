@@ -11,7 +11,7 @@ Timer t;
 
 char ch;
 CRGB leds[NUM_LEDS];
-enum systemModeEnum {Off, Red, Blue, Green, Pink, Teal, Rainbow, Blink} currentSystemMode = Rainbow;
+enum systemModeEnum {Off, Red, Blue, Green, Pink, Teal, Rainbow, Blink, Bullet} currentSystemMode = Rainbow;
 systemModeEnum lastSystemMode = Off;
 int commandReceivedLedOnboardArduino = 13;
 
@@ -70,11 +70,15 @@ void processCommand(char theCh) {
       currentSystemMode = Blink;
       Serial.write("Commanded BLINK. \n");
       break;
+      
+    case 'l':
+      currentSystemMode = Bullet;
+      Serial.write("Commanded BULLET. \n");
+      break;
 
     default:
       Serial.write("Commanded not recognized. \n");
       break;
-
   }
 }
 
@@ -89,6 +93,32 @@ void rainbow(uint8_t wait)
   }
   return;
 }
+
+void bullet(byte r, byte g, byte b)
+{
+  CRGB color = CRGB(r, g, b);
+  FastLED.clear()
+  for (int i = 0; i < BULLET_BUFFER; i++) 
+  {
+    leds[i] = color;
+    wait(10);
+    FastLED.show();
+  }
+  for (int i = BULLET_BUFFER; i < NUM_LEDS; i++) 
+  {
+    leds[i-BULLET_BUFFER] = CRGB::Black;
+    leds[i] = color;
+    FastLED.show();
+    wait(10);
+  }
+  for (int i = NUM_LEDS - BULLET_BUFFER; i < NUM_LEDS; i++)
+  {
+    leds[i] = CRGB::Black;
+    FastLED.show();
+    wait(10);
+  }
+}
+
 void processCurrentMode() {
   switch (currentSystemMode) {
 
@@ -170,7 +200,13 @@ void processCurrentMode() {
       lastSystemMode = Rainbow;
       }
       break;
-
+      
+    case Bullet:
+      if (lastSystemMode != Bullet) {
+        bullet(255, 194, 0); //Amber colored 
+        lastSystemMode = Bullet;
+      }
+      break;
     default:
       Serial.print("Unrecognized Mode");
       break;
@@ -214,29 +250,5 @@ void receiveEvent(int howMany)
     //not sure if it should be a normal or unsigned char
 
     processCommand(state);
-  }
-}
-
-void bullet(byte r, byte g, byte b)
-{
-  CRGB color = CRGB(r, g, b);
-  for (int i = 0; i < BULLET_BUFFER; i++) 
-  {
-    leds[i] = color;
-    wait(10);
-  }
-  FastLED.show();
-  for (int i = BULLET_BUFFER; i < NUM_LEDS; i++) 
-  {
-    leds[i-BULLET_BUFFER] = CRGB::Black;
-    leds[i] = color;
-    FastLED.show();
-    wait(10);
-  }
-  for (int i = NUM_LEDS - BULLET_BUFFER; i < NUM_LEDS; i++)
-  {
-    leds[i] = CRGB::Black;
-    FastLED.show();
-    wait(10);
   }
 }
