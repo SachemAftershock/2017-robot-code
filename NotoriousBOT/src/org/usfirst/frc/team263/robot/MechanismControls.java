@@ -1,5 +1,8 @@
 package org.usfirst.frc.team263.robot;
 
+import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.XboxController;
 
 /**
@@ -14,7 +17,9 @@ public class MechanismControls {
 	private RopeClimber ropeClimber;
 	private BallShooter shooter;
 	private Macros macros;
-	private boolean emergencyModeToggled, gearMechanismToggled, emergencyMode;
+	private Servo servo;
+	private boolean emergencyModeToggled, gearMechanismToggled, emergencyMode, clientCameraToggled;
+	//private double servoSP;
 
 	/**
 	 * Instantiates master class
@@ -31,14 +36,17 @@ public class MechanismControls {
 	 *            Macros container for all semi-autonomous routines
 	 */
 	public MechanismControls(BallShooter shooter, GearMechanism gearMechanism,
-			RopeClimber ropeClimber, Macros macros) {
+			RopeClimber ropeClimber, Macros macros, Servo servo) {
 		this.shooter = shooter;
 		this.gearMechanism = gearMechanism;
 		this.ropeClimber = ropeClimber;
 		this.macros = macros;
+		this.servo = servo;
 		emergencyModeToggled = false;
 		gearMechanismToggled = false;
-		emergencyMode = false;
+		emergencyMode = true;
+		clientCameraToggled = false;
+		//servoSP = 0.70;
 	}
 
 	/**
@@ -51,16 +59,31 @@ public class MechanismControls {
 		if (controller.getBackButton() && !emergencyModeToggled) {
 			emergencyMode = !emergencyMode;
 		}
-		if (emergencyMode) {
+		if (controller.getBumper(Hand.kLeft)) {
+			ropeClimber.pulse(0.3, 100);
+		}
+		if (/*emergencymode*/true) {
 			LEDStrip.sendColor(LEDStrip.LEDMode.eRed);
 			if (controller.getBButton()) {
-				shooter.setMotorRPM(0.6);
+				shooter.setMotorPower(0.70);
+				shooter.setAgitator(controller.getBumper(Hand.kRight));
 			} else {
-				shooter.setMotorRPM(0.0);
+				shooter.setMotorPower(0.0);
+				shooter.setAgitator(false);
 			}
 			if (controller.getAButton() && !gearMechanismToggled) {
 				gearMechanism.toggleState();
 			}
+			if(controller.getPOV() == 180) {
+				servo.set(1.0);
+				
+			} else if(controller.getPOV() == 0) {
+				servo.set(0.7);
+			}
+			if(controller.getStartButton() && clientCameraToggled) {
+				CameraCoprocessor.toggleClientCamera();
+			}
+			
 		} else {
 			if (controller.getBButton()) {
 				macros.gearPegMacro();
@@ -74,8 +97,13 @@ public class MechanismControls {
 		emergencyModeToggled = controller.getBackButton();
 		ropeClimber.updateEnable(controller.getXButton());
 		gearMechanismToggled = controller.getAButton();
+		clientCameraToggled = controller.getStartButton();
+		
+		
 
 		ropeClimber.run();
 		gearMechanism.run();
+		shooter.run();
+		CameraCoprocessor.setClientCamera();
 	}
 }

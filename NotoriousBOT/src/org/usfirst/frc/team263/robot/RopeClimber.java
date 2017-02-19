@@ -42,11 +42,21 @@ public class RopeClimber {
 	public void updateEnable(boolean enable) {
 		isEnabled = enable;
 	}
+	
+	public void pulse(double speed, long time) {
+		motor.set(speed);
+		try {
+			Thread.sleep(time);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * Updates motor output of climber CIM
 	 */
 	public void run() {
-		motor.set(isEnabled && (!leftLimitSwitch.get() && !rightLimitSwitch.get()) ? 1.0 : 0.0);
+		motor.set(isEnabled /*&& (!leftLimitSwitch.get() && !rightLimitSwitch.get())*/ ? 1.0 : 0.0);
 	}
 }

@@ -20,7 +20,7 @@ public class GearMechanism {
 	private DigitalInput downwardLimitSwitch, upwardLimitSwitch;
 	private boolean desireUp;
 	private SpeedController motor;
-	private final double MOTOR_SPEED = 0.9;
+	private final double MOTOR_SPEED = 0.60;
 
 	/**
 	 * Initialize GearMechanism object to control Gear subsystem
@@ -45,7 +45,6 @@ public class GearMechanism {
 	 */
 	public void toggleState() {
 		desireUp = !desireUp;
-		System.out.println("change state");
 	}
 
 	/**
@@ -84,9 +83,11 @@ public class GearMechanism {
 			break;
 		case eGoingDown:
 			motor.set(-MOTOR_SPEED);
+			System.out.println("GOING DOWN");
 			break;
 		default:
 			motor.set(0.00);
+			System.out.println("DEFAULT");
 		}
 	}
 }

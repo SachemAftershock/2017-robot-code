@@ -20,7 +20,8 @@ public class MecanumDrive {
 	private double kd;
 	public volatile boolean autoMovement;
 	private AHRS mGyro;
-	private final double TUNED_KP = 1, TUNED_KI = 1, TUNED_KD = 1;
+	private boolean clientCameraToggled;
+	private final double TUNED_KP = 0.00001, TUNED_KI = 0.0001, TUNED_KD = 0.5, ROTATION_CONSTANT = 0.6;
 
 	public enum PIDModes {
 		eRotate, eLinearX, eLinearY;
@@ -52,6 +53,7 @@ public class MecanumDrive {
 		kd = driftConstant;
 		autoMovement = false;
 		mGyro = gyro;
+		clientCameraToggled = false;
 	}
 
 	/**
@@ -88,7 +90,7 @@ public class MecanumDrive {
 	 * <p>
 	 * Refer to <code>drive(Xbox controller)</code> for non-field oriented
 	 * controls.
-	 * </p>
+	 * </p>s
 	 * 
 	 * @param controller
 	 *            Xbox controller to input drive controls
@@ -102,6 +104,10 @@ public class MecanumDrive {
 			double x = deadband(controller.getRawAxis(0), 0.1);
 			double y = deadband(-controller.getRawAxis(1), 0.1);
 			double r = deadband(controller.getTriggerAxis(Hand.kRight) - controller.getTriggerAxis(Hand.kLeft), 0.1);
+			
+			if (controller.getBumper(Hand.kRight)) {
+				x = 0;
+			}
 
 			// Drift correction using proportional gain
 			if (r == 0 && Math.abs(x) + Math.abs(y) > 0) {
@@ -121,13 +127,16 @@ public class MecanumDrive {
 			// Speeds = {fr, br, fl, bl} operations for each wheel speed.
 			// Speeds are then normalized to make sure the robot drives
 			// correctly.
-			double[] speeds = { -x + y - r, x + y - r, x + y + r, -x + y + r };
+			double[] speeds = { -x + y - r * ROTATION_CONSTANT, x + y - r * ROTATION_CONSTANT,
+					x + y + r * ROTATION_CONSTANT, -x + y + r * ROTATION_CONSTANT };
 			normalize(speeds);
+			
+			double throttleMultiplier = controller.getBumper(Hand.kLeft) ? 0.5 : 1.0;
 
-			mFrontRight.set(speeds[0]);
-			mBackRight.set(speeds[1]);
-			mFrontLeft.set(speeds[2]);
-			mBackLeft.set(speeds[3]);
+			mFrontRight.set(speeds[0] * throttleMultiplier);
+			mBackRight.set(speeds[1] * throttleMultiplier);
+			mFrontLeft.set(speeds[2] * throttleMultiplier);
+			mBackLeft.set(speeds[3] * throttleMultiplier);
 
 			if (controller.getXButton()) {
 				synchronized (this) {
@@ -157,6 +166,14 @@ public class MecanumDrive {
 		} else if (controller.getAButton()) {
 			autoMovement = false;
 		}
+		
+		if(controller.getStartButton() && clientCameraToggled) {
+			CameraCoprocessor.toggleClientCamera();
+		}
+		
+		clientCameraToggled = controller.getStartButton();
+		CameraCoprocessor.setClientCamera();
+		
 	}
 
 	/**
@@ -301,13 +318,17 @@ public class MecanumDrive {
 				} else {
 					error = linearError(setPoint, inputDevice.getDisplacementY() - initialDisplacement);
 				}
-				double u = Kp * error + Ki * integral + Kd * (error - previousError);
+				double u = Kp * error + Ki * integral + Kd * (previousError - error);
+				System.out.println("u: " + u + " | error: " + error + " | theta: " + inputDevice.getYaw());
 				synchronized (this) {
 					double[] motorSpeeds = new double[motors.length];
 					for (int i = 0; i < motors.length; i++) {
 						motorSpeeds[i] = u * multipliers[i];
 					}
 					normalize(motorSpeeds);
+					for (int i = 0; i < motors.length; i++) {
+						motorSpeeds[i] *= 0.6;
+					}
 					for (int i = 0; i < motors.length; i++) {
 						motors[i].set(motorSpeeds[i]);
 					}
@@ -332,5 +353,22 @@ public class MecanumDrive {
 			}
 			return ret;
 		}
+	}
+
+	public void forward(double d, int i) {
+		mFrontLeft.set(d);
+		mFrontRight.set(d);
+		mBackLeft.set(d);
+		mBackRight.set(d);
+		try {
+			Thread.sleep(i);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		mFrontLeft.set(0);
+		mFrontRight.set(0);
+		mBackLeft.set(0);
+		mBackRight.set(0);
 	}
 }

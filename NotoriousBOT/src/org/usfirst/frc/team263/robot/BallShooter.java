@@ -16,7 +16,7 @@ public class BallShooter {
 	private SpeedController shooterMotor, agitatorMotor;
 	private Encoder enc;
 	private Thread PIDLoop;
-	private final double REVOLUTION_CONSTANT = 600.0, epsilon = 25, TUNED_KP = 1, TUNED_KI = 1, TUNED_KD = 1;
+	private final double REVOLUTION_CONSTANT = 600.0, epsilon = 25, TUNED_KP = Math.pow(10, -3), TUNED_KI = 0, TUNED_KD = Math.pow(10, -1), AGITATOR_SPEED = -0.45;
 	private double setRPM;
 	private volatile boolean isUpToSpeed, isAgitatorOn;
 
@@ -54,6 +54,10 @@ public class BallShooter {
 		shooterMotor.set(0);
 		agitatorMotor.set(0);
 	}
+	
+	public void setMotorPower(double power) {
+		shooterMotor.set(power);
+	}
 
 	/**
 	 * Creates or maintains rotation rate if within epsilon
@@ -62,9 +66,16 @@ public class BallShooter {
 	 *            Desired rotation rate in rotations per minute
 	 */
 	public void setMotorRPM(double rpm) {
-		if (Math.abs(rpm - setRPM) > epsilon) {
-			PIDLoop.interrupt();
+		if (rpm == 0.0) {
+			if (PIDLoop != null) {
+				PIDLoop.interrupt();
+			}
+		} else if (Math.abs(rpm - setRPM) > epsilon) {
+			if (PIDLoop != null) {
+				PIDLoop.interrupt();
+			}
 			PIDLoop = new VelocityPID(rpm, enc, shooterMotor, TUNED_KP, TUNED_KI, TUNED_KD);
+			PIDLoop.run();
 		}
 	}
 
@@ -83,6 +94,10 @@ public class BallShooter {
 	 */
 	public void setAgitator(boolean enabled) {
 		isAgitatorOn = enabled;
+	}
+	
+	public void run() {
+		agitatorMotor.set(isAgitatorOn ? AGITATOR_SPEED : 0);
 	}
 
 	/**
@@ -120,11 +135,14 @@ public class BallShooter {
 					double previousError = error;
 					error = desiredRate - inputDevice.pidGet();
 					isUpToSpeed = Math.abs(error) < epsilon;
-					double u = Kp * error + Ki * integral + Kd * (error - previousError);
+					double u = -(Kp * error + Ki * integral + Kd * (error - previousError));
+					System.out.println("Error: " + error + " | u: " + u + " | y: " + inputDevice.pidGet());
 					shooterMotor.set(Math.abs(u) > 1 ? Math.signum(u) : u);
-					agitatorMotor.set(isAgitatorOn ? 1.0 : 0.0);
+					agitatorMotor.set(isAgitatorOn ? AGITATOR_SPEED: 0.0);
 				}
 			}
+			System.out.println("test");
+			disable();
 			shooterMotor = null;
 			inputDevice = null;
 		}
