@@ -12,12 +12,11 @@ def main():
 		img = client.recv(300000)
 		string = np.fromstring(img,np.uint8)
 		im = cv2.imdecode(string, 1)
-
 		try:
 			cv2.imshow('Frame',im)
 		except Exception as e:
 			continue
-
+			
 		if cv2.waitKey(10) & 0xFF == 113:
 			break
 if __name__ == '__main__':
