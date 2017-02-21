@@ -66,7 +66,7 @@ public class VisionProcessing {
 	 * @return Distance from peg (inches)
 	 */
 	public double findDistancePeg(double[] nums) {
-		if (nums[3] < 0) {
+		if (nums[3] < 0 || Math.abs(nums[3] - nums[1]) > 150) {
 			return -1.0; // error handing from the Pi
 		}
 
