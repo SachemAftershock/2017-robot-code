@@ -66,17 +66,18 @@ public class VisionProcessing {
 	 * @return Distance from peg (inches)
 	 */
 	public double findDistancePeg(double[] nums) {
-		if (nums[3] < 0 || Math.abs(nums[3] - nums[1]) > 150) {
+		if (nums[3] < 0) {
 			return -1.0; // error handing from the Pi
 		}
 
 		Point[] pts = arrToPoints(nums);
 		double PPI = findPixelsPerInchPeg(pts[0], pts[1]);
+		//System.out.println(pts[0].x + ", " + pts[1].x);
 		double width = resX / PPI;
 		double distDiag = .5 * width / Math.tan(25 * Math.PI / 180); // degrees
-																		// to
+		return distDiag;																// to
 																		// radians
-		double distLat = Math.sqrt(distDiag * distDiag - 189.0625); // use
+		//double distLat = Math.sqrt(distDiag * distDiag - 189.0625); // use
 																	// triangulation
 																	// to find
 																	// the
@@ -86,7 +87,7 @@ public class VisionProcessing {
 																	// number is
 																	// deltaH
 																	// squared
-		return distLat;
+		//return distLat;
 	}
 
 	/**
@@ -128,12 +129,13 @@ public class VisionProcessing {
 	 *            X and Y values of points
 	 * @return Distance to strafe for peg (inches)
 	 */
-	public double findStrafeDistancePeg(double[] nums) {
+	public double findStrafeDirectionPeg(double[] nums) {
+		if(nums[3] < 0) return -2;
 		Point[] pts = arrToPoints(nums);
-		double PPI = findPixelsPerInchPeg(pts[0], pts[1]);
-		Point ctr = cc.findCenterPoint(pts[0], pts[1]);
-		double pixels = ctr.x - resX / 2;
-		return pixels / PPI;
+		double diff = pts[0].x - pts[1].x;
+		//System.out.println(": " +pts[0].x + "and " + pts[1].x);
+		if(Math.abs(diff) > 40) return Math.signum(diff);
+		return 0;
 	}
 
 	/**

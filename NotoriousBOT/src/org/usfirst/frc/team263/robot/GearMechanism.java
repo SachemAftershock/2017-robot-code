@@ -79,15 +79,15 @@ public class GearMechanism {
 			motor.set(0.00);
 			break;
 		case eGoingUp:
-			motor.set(MOTOR_SPEED);
+			motor.set(MOTOR_SPEED * 1.2);
 			break;
 		case eGoingDown:
 			motor.set(-MOTOR_SPEED);
-			System.out.println("GOING DOWN");
+			//System.out.println("GOING DOWN");
 			break;
 		default:
 			motor.set(0.00);
-			System.out.println("DEFAULT");
+			//System.out.println("DEFAULT");
 		}
 	}
 }

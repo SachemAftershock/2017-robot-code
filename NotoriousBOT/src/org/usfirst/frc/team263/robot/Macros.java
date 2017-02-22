@@ -79,7 +79,7 @@ public class Macros {
 			if (stateCounter == 2) {
 				double[] centerPoints = CameraCoprocessor.updateGearCamera();
 				distanceGearPeg = vision.findDistancePeg(centerPoints);
-				strafeDist = vision.findStrafeDistancePeg(centerPoints);
+				//strafeDist = vision.findStrafeDistancePeg(centerPoints);
 				if (distanceGearPeg == -1) {
 					(new JoystickRumble(joysticks, 2)).start();
 					isRunning = false;
@@ -89,11 +89,11 @@ public class Macros {
 				stateCounter++;
 			}
 			if (stateCounter == 3) {
-				drive.autoStrafe(strafeDist);
+				//drive.autoStrafe(strafeDist);
 				stateCounter++;
 			}
 			if (stateCounter == 4) {
-				drive.autoDrive(distanceGearPeg);
+				//drive.autoDrive(distanceGearPeg);
 				stateCounter++;
 			}
 			if (stateCounter == 5) {
@@ -101,7 +101,7 @@ public class Macros {
 				stateCounter++;
 			}
 			if (stateCounter == 6) {
-				drive.autoDrive(-10);
+				//drive.autoDrive(-10);
 				stateCounter++;
 			}
 			if (stateCounter == 7) {
