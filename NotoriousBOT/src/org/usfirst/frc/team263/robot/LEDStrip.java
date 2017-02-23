@@ -17,6 +17,9 @@ public class LEDStrip {
 	private static byte[] colorModes = { 'r', 'g', 'b', 'p', 't', 'n', 'a', 'o' };
 	public static LEDMode currentMode = LEDMode.eOff;
 
+	/**
+	 * Enumeration for different LEDModes
+	 */
 	public static enum LEDMode {
 		eRed, eGreen, eBlue, ePink, eTeal, eOff, eRainbow, eBlink;
 	}

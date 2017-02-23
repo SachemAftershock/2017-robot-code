@@ -13,8 +13,8 @@ import edu.wpi.first.wpilibj.Timer;
  */
 public class JoystickRumble extends Thread {
 	private double duration;
-	XboxController[] joysticks;
-	int amount;
+	private XboxController[] joysticks;
+	private int amount;
 
 	/**
 	 * @param stick
@@ -82,6 +82,7 @@ public class JoystickRumble extends Thread {
 
 			Timer.delay(0.15);
 		}
+		joysticks = null;
 	}
 
 }

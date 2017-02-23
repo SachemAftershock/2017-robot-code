@@ -1,7 +1,6 @@
 package org.usfirst.frc.team263.robot;
 
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.PIDSourceType;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.XboxController;
 
@@ -17,9 +16,9 @@ public class BallShooter {
 	private SpeedController shooterMotor, agitatorMotor;
 	private Encoder enc;
 	private Thread PIDLoop;
-	private final double REVOLUTION_CONSTANT = 2400.0, epsilon = 25, TUNED_KP = 0.01, TUNED_KI = 0, TUNED_KD = 0, AGITATOR_SPEED = -0.45;
+	private final double epsilon = 25, TUNED_KP = 0.01, TUNED_KI = 0, TUNED_KD = 0, AGITATOR_SPEED = -0.45;
 	private double setRPM;
-	private XboxController controller; 
+	private XboxController controller;
 	private double speed;
 	private volatile boolean isUpToSpeed, isAgitatorOn, PIDGo = false;
 
@@ -33,15 +32,16 @@ public class BallShooter {
 	 * @param enc
 	 *            Rotary encoder on shooter shaft
 	 */
-	public BallShooter(SpeedController shooterMotor, SpeedController agitatorMotor, Encoder enc, XboxController controller) {
+	public BallShooter(SpeedController shooterMotor, SpeedController agitatorMotor, Encoder enc,
+			XboxController controller) {
 		this.shooterMotor = shooterMotor;
 		this.agitatorMotor = agitatorMotor;
+		this.controller = controller;
 		this.enc = enc;
+		this.enc.setMinRate(0);
 		setRPM = 0;
 		isUpToSpeed = false;
 		isAgitatorOn = false;
-		this.controller = controller;
-		this.enc.setMinRate(0);
 		speed = 0.0;
 	}
 
@@ -58,14 +58,34 @@ public class BallShooter {
 		shooterMotor.set(0);
 		agitatorMotor.set(0);
 	}
-	
+
+	/**
+	 * Directly sets the motor power of the ball shooter based on controller
+	 * input.
+	 */
 	public void setMotorPower() {
+		if (controller.getPOV() == 0) {
+			speed = 0.97;
+		} else if (controller.getPOV() == 90) {
+			speed = 0.9;
+		} else if (controller.getPOV() == 180) {
+			speed = 0.75;
+		} else if (controller.getPOV() == 270) {
+			speed = 0.85;
+		}
 		shooterMotor.set(speed);
 	}
 
+	/**
+	 * Directly sets the motor power of the ball shooter.
+	 * 
+	 * @param power
+	 *            Power to set the shooter motor
+	 */
 	public void setMotorPower(double power) {
 		shooterMotor.set(power);
 	}
+
 	/**
 	 * Creates or maintains rotation rate if within epsilon
 	 * 
@@ -98,32 +118,38 @@ public class BallShooter {
 	public void setAgitator(boolean enabled) {
 		isAgitatorOn = enabled;
 	}
-	
+
+	/**
+	 * Method to run agitator.
+	 */
 	public void run() {
 		agitatorMotor.set(isAgitatorOn ? AGITATOR_SPEED : 0);
-		if(controller.getPOV() == 0) {
-			speed = 1.0;
-		} else if(controller.getPOV() == 90) {
-			speed = 0.9;
-		} else if(controller.getPOV() == 180) {
-			speed = 0.75;
-		} else if(controller.getPOV() == 270) {
-			speed = 0.85;
-		}
 	}
 
 	/**
-	 * PID Class to control PID on flywheel shooter
+	 * PID Class to control PID on flywheel shooter.
+	 * 
+	 * There's probably a better way to do this... I just took a positional PID
+	 * and differentiated in terms of time.
 	 * 
 	 * @author Dan Waxman
-	 * @since 02-04-2017
+	 * @since 02-23-2017
 	 * @version 0.1
 	 */
 	private class VelocityPID extends Thread {
-		private double Kp, Ki, Kd, setPoint, previousOmega, error, previousU, integral;
+		private double Kp, Ki, Kd, setPoint, previousOmega, error, u, integral;
 		private Encoder enc;
 		private SpeedController motor;
-		
+
+		/**
+		 * Constructor for VPID thread object
+		 * @param Kp Tuned proportional gain constant
+		 * @param Ki Tuned integral gain constant
+		 * @param Kd Tuned derivative gain constant
+		 * @param setPoint Desired velocity (in native counts)
+		 * @param enc Encoder device for feedback
+		 * @param output Device to output to
+		 */
 		public VelocityPID(double Kp, double Ki, double Kd, double setPoint, Encoder enc, SpeedController output) {
 			this.Kp = Kp;
 			this.Ki = Ki;
@@ -132,23 +158,24 @@ public class BallShooter {
 			this.enc = enc;
 			this.motor = output;
 			previousOmega = enc.getRate();
+			u = 0;
 		}
-		
+
+		/**
+		 * Method for controlling velocity
+		 */
 		public void run() {
-			//System.out.println("ATETTTTTTTTTTTTTTAS");
 			while (PIDGo) {
-				synchronized(this) {
+				synchronized (this) {
 					error = setPoint - Math.abs(enc.getRate());
-					double u = Kp * error + Ki * integral + Kd * (Math.abs(enc.getRate() - previousOmega)) + previousU;
-					System.out.println("error: " + error + " | u: " + u + "| motor: " + motor.get());
+					u += Kp * error + Ki * integral + Kd * (Math.abs(enc.getRate() - previousOmega));
 					integral += enc.getRate();
-					previousU = u;
 					previousOmega = enc.getRate();
 					motor.set(Math.abs(u) > 1 ? Math.signum(u) : u);
-				}	
+				}
 			}
-			PIDGo = false;
 			motor.set(0);
+			PIDGo = false;
 			motor = null;
 			enc = null;
 		}

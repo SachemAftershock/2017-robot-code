@@ -1,8 +1,5 @@
 package org.usfirst.frc.team263.robot;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-
 import edu.wpi.first.wpilibj.networktables.NetworkTable;
 
 /**
@@ -14,59 +11,42 @@ import edu.wpi.first.wpilibj.networktables.NetworkTable;
  * @since 02-01-17
  */
 public class CameraCoprocessor {
-	 private static NetworkTable table;
+	private static NetworkTable table;
 	private static boolean gearMode = true;
-	//private static ServerSocket server;
-	//private static Socket client;
 
+	/**
+	 * @return (X,Y) of two contour points of gear
+	 */
 	public static double[] updateGearCamera() {
 		table = NetworkTable.getTable("cameraData/gear");
-		return new double[] {table.getNumber("pointOneX", -1.0),
-		table.getNumber("pointOneY", -1.0),
-		table.getNumber("pointTwoX", -1.0), table.getNumber("pointTwoY", -1.0)};
+		return new double[] { table.getNumber("pointOneX", -1.0), table.getNumber("pointOneY", -1.0),
+				table.getNumber("pointTwoX", -1.0), table.getNumber("pointTwoY", -1.0) };
 	}
 
+	/**
+	 * @return (X,Y) of two contour points of shooter
+	 */
 	public static double[] updateShooterCamera() {
 		table = NetworkTable.getTable("cameraData/shooter");
-		return new double[] {table.getNumber("pointOneX", -1.0),
-		table.getNumber("pointOneY", -1.0),
-		table.getNumber("pointTwoX", -1.0), table.getNumber("pointTwoY", -1.0)};
+		return new double[] { table.getNumber("pointOneX", -1.0), table.getNumber("pointOneY", -1.0),
+				table.getNumber("pointTwoX", -1.0), table.getNumber("pointTwoY", -1.0) };
 	}
-	/*
-	public static void connectToggle() {
-		try {
-			server = new ServerSocket(5800);
-			// client = server.accept();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}*/
 
+	/**
+	 * Toggles camera mode in NetworkTables for the Pi to send.
+	 */
 	public static void toggleClientCamera() {
 		gearMode = !gearMode;
 		table = NetworkTable.getTable("cameraData/clientMode");
 		table.putBoolean("gearMode", gearMode);
 	}
-
-	/*public static void setClientCamera() {
-		try {
-			if (gearMode) {
-				client.getOutputStream().write(236);
-				System.out.println("toggling camera");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-*/
-	private class Server extends Thread {
-		public Server() {
-
-		}
-
-		public void run() {
-
-		}
+	
+	/**
+	 * Gets String for autonomous mode.
+	 * @return String representing current autonomous mode.
+	 */
+	public static String getAutoMode() {
+		table = NetworkTable.getTable("autonomousChooser");
+		return table.getString("autoMode", "default");
 	}
 }

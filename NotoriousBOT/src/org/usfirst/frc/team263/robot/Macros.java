@@ -25,7 +25,7 @@ public class Macros {
 	private final double MAX_FIRE_DISTANCE = 7.0; // to be found empirically?
 	private int stateCounter;
 	private boolean isRunning;
-	private double distanceGearPeg, strafeDist, RPMNeeded;
+	private double distanceGearPeg, RPMNeeded;
 
 	/**
 	 * Instantiate Macros object
@@ -139,6 +139,9 @@ public class Macros {
 		}
 	}
 
+	/**
+	 * Disable everything currently running
+	 */
 	public void disableAll() {
 		isRunning = false;
 		stateCounter = 0;

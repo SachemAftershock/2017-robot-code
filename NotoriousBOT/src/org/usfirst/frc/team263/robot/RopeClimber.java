@@ -2,6 +2,7 @@ package org.usfirst.frc.team263.robot;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.SpeedController;
+import edu.wpi.first.wpilibj.Timer;
 
 /**
  * Code to operate rope climber
@@ -45,12 +46,8 @@ public class RopeClimber {
 	
 	public void pulse(double speed, long time) {
 		motor.set(speed);
-		try {
-			Thread.sleep(time);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			//e.printStackTrace();
-		}
+		Timer.delay(time / 1000);
+		motor.set(0);
 	}
 
 	/**

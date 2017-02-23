@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.SpeedController;
  * @version 1.0
  */
 public class GearMechanism {
-	public enum GearModes {
+	public static enum GearModes {
 		eDown, eUp, eGoingDown, eGoingUp;
 	}
 
@@ -20,7 +20,7 @@ public class GearMechanism {
 	private DigitalInput downwardLimitSwitch, upwardLimitSwitch;
 	private boolean desireUp;
 	private SpeedController motor;
-	private final double MOTOR_SPEED = 0.60;
+	private final double MOTOR_SPEED = 0.60, UP_MULTIPLIER = 1.2;
 
 	/**
 	 * Initialize GearMechanism object to control Gear subsystem
@@ -79,15 +79,13 @@ public class GearMechanism {
 			motor.set(0.00);
 			break;
 		case eGoingUp:
-			motor.set(MOTOR_SPEED * 1.2);
+			motor.set(MOTOR_SPEED * UP_MULTIPLIER);
 			break;
 		case eGoingDown:
 			motor.set(-MOTOR_SPEED);
-			//System.out.println("GOING DOWN");
 			break;
 		default:
 			motor.set(0.00);
-			//System.out.println("DEFAULT");
 		}
 	}
 }
