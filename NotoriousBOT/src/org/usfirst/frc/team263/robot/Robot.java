@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.XboxController;
-
 public class Robot extends SampleRobot {
 	AHRS gyro;
 	VictorSP frontRight, frontLeft, backRight, backLeft, agitator;
@@ -118,7 +117,7 @@ public class Robot extends SampleRobot {
 			mech.drive(sDriver);
 			
 			// LEDStrip feedback logic
-			if (gearMechanism.getState().equals(gearMechanism.GearModes.eUp)) {
+			if (gearMechanism.getState().equals(gearMechanism.getUp())) {
 				
 			}
 		}
@@ -134,6 +133,7 @@ public class Robot extends SampleRobot {
 				LEDStrip.sendColor(LEDStrip.LEDMode.eBlue);
 			}
 			String autoMode = CameraCoprocessor.getAutoMode();
+			System.out.println(autoMode);
 			if (autoMode.equals("Middle With Shot")) {
 				autonomous.middleGearShoot();
 			} else if (autoMode.equals("Left Gear Forward")) {
@@ -146,6 +146,10 @@ public class Robot extends SampleRobot {
 				autonomous.leftGearStill();
 			} else if (autoMode.equals("Right Gear Still")) {
 				autonomous.rightGearStill();
+			} else if (autoMode.equals("Nothing")) {
+			
+			} else {
+				System.out.println("Error - Recieved Unknown Command: " + autoMode);
 			}
 		}
 

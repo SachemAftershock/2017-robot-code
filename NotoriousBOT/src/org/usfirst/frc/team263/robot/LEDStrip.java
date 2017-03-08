@@ -21,7 +21,8 @@ public class LEDStrip {
 	 * Enumeration for different LEDModes
 	 */
 	public static enum LEDMode {
-		eRed, eGreen, eBlue, ePink, eTeal, eOff, eRainbow, eBlink;
+		eRed, eBlue, ePink, eTeal, eOff, eRainbow, eBlink; 
+		//  ^^ took off eGreen bc Vision System light rings are same color
 	}
 
 	/**

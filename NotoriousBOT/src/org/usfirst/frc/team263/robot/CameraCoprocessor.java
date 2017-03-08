@@ -46,7 +46,7 @@ public class CameraCoprocessor {
 	 * @return String representing current autonomous mode.
 	 */
 	public static String getAutoMode() {
-		table = NetworkTable.getTable("autonomousChooser");
-		return table.getString("autoMode", "default");
+		table = NetworkTable.getTable("autoData");
+		return table.getString("mode", "Middle With Shot");
 	}
 }

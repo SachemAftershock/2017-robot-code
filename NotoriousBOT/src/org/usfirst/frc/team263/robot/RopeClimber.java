@@ -46,9 +46,10 @@ public class RopeClimber {
 	
 	public void pulse(double speed, long time) {
 		motor.set(speed);
-		Timer.delay(time / 1000);
+		Timer.delay(time/1000);
 		motor.set(0);
 	}
+	
 
 	/**
 	 * Updates motor output of climber CIM

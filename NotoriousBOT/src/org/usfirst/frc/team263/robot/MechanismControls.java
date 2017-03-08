@@ -60,8 +60,8 @@ public class MechanismControls {
 			emergencyMode = !emergencyMode;
 		}
 		if (controller.getBumper(Hand.kLeft)) {
-			ropeClimber.pulse(0.3, 100);
-		}
+			ropeClimber.pulse(0.6, 100);
+		} 
 		if (emergencyMode) {
 			if (controller.getBButton()) {
 				shooter.setMotorPower();

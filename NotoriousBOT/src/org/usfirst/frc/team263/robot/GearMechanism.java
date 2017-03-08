@@ -55,6 +55,10 @@ public class GearMechanism {
 	public GearModes getState() {
 		return state;
 	}
+	
+	public GearModes getUp() {
+		return GearModes.eUp;
+	}
 
 	/**
 	 * Contains logic for movement of GearMech gate based upon current set state

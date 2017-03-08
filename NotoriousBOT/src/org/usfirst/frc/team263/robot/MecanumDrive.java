@@ -22,7 +22,7 @@ public class MecanumDrive {
 	public volatile boolean autoMovement;
 	public double speed;
 	private AHRS mGyro;
-	private final double TUNED_KP = 0.0076, TUNED_KI = 0.0025, TUNED_KD = -0.0025, TUNED_KF = 0.02,
+	private final double TUNED_KP = 0.0075, TUNED_KI = 0.0035, TUNED_KD = -0.0025, TUNED_KF = 0.02,
 			ROTATION_CONSTANT = 0.6;
 
 	public enum PIDModes {
