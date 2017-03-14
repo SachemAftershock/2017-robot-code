@@ -97,11 +97,11 @@ void rainbow(uint8_t wait)
 void bullet(byte r, byte g, byte b)
 {
   CRGB color = CRGB(r, g, b);
-  FastLED.clear()
+  FastLED.clear();
   for (int i = 0; i < BULLET_BUFFER; i++) 
   {
     leds[i] = color;
-    wait(10);
+    delay(10);
     FastLED.show();
   }
   for (int i = BULLET_BUFFER; i < NUM_LEDS; i++) 
@@ -109,13 +109,13 @@ void bullet(byte r, byte g, byte b)
     leds[i-BULLET_BUFFER] = CRGB::Black;
     leds[i] = color;
     FastLED.show();
-    wait(10);
+    delay(10);
   }
   for (int i = NUM_LEDS - BULLET_BUFFER; i < NUM_LEDS; i++)
   {
     leds[i] = CRGB::Black;
     FastLED.show();
-    wait(10);
+    delay(10);
   }
 }
 
