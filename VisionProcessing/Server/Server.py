@@ -1,3 +1,4 @@
+from networktables import NetworkTables
 import socket
 import cv2
 import numpy as np
@@ -5,9 +6,22 @@ import numpy as np
 sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 sock.bind(('',5810))
 sock.listen(5)
+NetworkTables.initialize(server='roboRIO-263-FRC.local')
+
 
 def main():
-  client, addr = sock.accept()
+	modeList = ['Middle With Shot - %d', 'Left Gear Forward - %d', 'Right Gear Forward - %d', 'Middle Gear No Shot - %d', 'Left Gear Still - %d', 'Right Gear Still - %d', 'Nothing - %d']
+	for i,e in enumerate(modeList):
+		print(e % i)
+	choice = int(input('What mode do you wanna do...\n'))
+	auto = NetworkTables.getTable('autoData')
+	auto.putString('mode', modeList[choice].replace(' - %d',''))
+	try:
+		input('Sending '  + modeList[choice].replace(' - %d','') + ' via networktables')
+	except Exception as e:
+		print('you fucked up: ' + str(e))
+
+	client, addr = sock.accept()
 	while True:
 		img = client.recv(300000)
 		string = np.fromstring(img,np.uint8)
