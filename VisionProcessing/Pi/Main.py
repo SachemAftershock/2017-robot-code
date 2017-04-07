@@ -439,12 +439,12 @@ class ImageRetriever:
         self.shooterCam.set(cv2.CAP_PROP_FPS, 15)
         self.shooterCam.set(cv2.CAP_PROP_EXPOSURE, 20)
 
-        self.vOut = cv2.VideoWriter('output.avi', -1, 15.0, (360, 240))
+        #self.vOut = cv2.VideoWriter('output.avi', -1, 15.0, (360, 240))
 
     @classmethod
     def get_latest_gear(self):
     	if Sender.is_match_over():
-    		vOut.release()
+    		#vOut.release()
 	lock.acquire()
         frame = self.gearCam.read()[1]
 	time.sleep(0.05)
