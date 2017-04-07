@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.Servo;
@@ -44,6 +45,7 @@ public class Robot extends SampleRobot {
 			CameraServer.getInstance().startAutomaticCapture();
 		}
 		LEDStrip.sendColor(LEDStrip.LEDMode.eRainbow);
+		
 	}
 
 	public Robot() {
@@ -88,7 +90,7 @@ public class Robot extends SampleRobot {
 
 		// Initialize all necessary systems and mechanisms
 		drive = new MecanumDrive(frontRight, backRight, frontLeft, backLeft, gyro, DRIFT_CONSTANT);
-		shooter = new BallShooter(ballShooterMotor, agitator, shooterEncoder, pDriver);
+		shooter = new BallShooter(ballShooterMotor, agitator, shooterEncoder, sDriver);
 		ropeClimber = new RopeClimber(ropeClimberMotor, leftClimberLS, rightClimberLS);
 		gearMechanism = new GearMechanism(gearMechanismMotor, bottomGearLS, topGearLS);
 		macros = new Macros(gyro, CAMERA_X, CAMERA_Y, drive, shooter, gearMechanism,
@@ -121,7 +123,8 @@ public class Robot extends SampleRobot {
 				
 			}
 		}
-	}
+		//NetworkTable.getTable("cameraData").putBoolean("end", false);
+	}	
 
 	@Override
 	public void autonomous() {
@@ -132,9 +135,11 @@ public class Robot extends SampleRobot {
 			} else {
 				LEDStrip.sendColor(LEDStrip.LEDMode.eBlue);
 			}
-			String autoMode = CameraCoprocessor.getAutoMode();
-			System.out.println(autoMode);
-			if (autoMode.equals("Middle With Shot")) {
+			
+			autonomous.middleGear();
+			
+			/*String autoMode = CameraCoprocessor.getAutoMode();
+			 if (autoMode.equals("Middle With Shot")) {
 				autonomous.middleGearShoot();
 			} else if (autoMode.equals("Left Gear Forward")) {
 				autonomous.leftGear();
@@ -150,7 +155,7 @@ public class Robot extends SampleRobot {
 			
 			} else {
 				System.out.println("Error - Recieved Unknown Command: " + autoMode);
-			}
+			}*/
 		}
 
 	}
@@ -158,5 +163,6 @@ public class Robot extends SampleRobot {
 	@Override
 	public void disabled() {
 		super.disabled();
+		//NetworkTable.getTable("cameraData").putBoolean("end", true);
 	}
 }

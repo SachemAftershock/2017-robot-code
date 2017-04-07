@@ -16,6 +16,7 @@ public class RopeClimber {
 	DigitalInput rightLimitSwitch;
 	private SpeedController motor;
 	private boolean isEnabled;
+	private double maxSpeed;
 
 	/**
 	 * Instantiate BallIntake object
@@ -32,6 +33,7 @@ public class RopeClimber {
 		this.leftLimitSwitch = leftLimitSwitch;
 		this.rightLimitSwitch = rightLimitSwitch;
 		isEnabled = false;
+		maxSpeed = 0;
 	}
 
 	/**
@@ -42,6 +44,10 @@ public class RopeClimber {
 	 */
 	public void updateEnable(boolean enable) {
 		isEnabled = enable;
+	}
+	
+	public void setMaxSpeed(double speed) {
+		maxSpeed = speed;
 	}
 	
 	public void pulse(double speed, long time) {
@@ -55,6 +61,6 @@ public class RopeClimber {
 	 * Updates motor output of climber CIM
 	 */
 	public void run() {
-		motor.set(isEnabled /*&& (!leftLimitSwitch.get() && !rightLimitSwitch.get())*/ ? 1.0 : 0.0);
+		motor.set(isEnabled /*&& (!leftLimitSwitch.get() && !rightLimitSwitch.get())*/ ? maxSpeed : 0.0);
 	}
 }

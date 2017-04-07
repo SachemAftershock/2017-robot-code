@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.networktables.NetworkTable;
  * @since 02-01-17
  */
 public class CameraCoprocessor {
-	private static NetworkTable table;
+	public static NetworkTable table;
 	private static boolean gearMode = true;
 
 	/**
@@ -47,6 +47,7 @@ public class CameraCoprocessor {
 	 */
 	public static String getAutoMode() {
 		table = NetworkTable.getTable("autoData");
-		return table.getString("mode", "Middle With Shot");
+		return table.getString("mode", "Middle Gear No Shot");
 	}
+	
 }

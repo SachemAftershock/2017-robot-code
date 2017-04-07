@@ -20,6 +20,8 @@ public class MechanismControls {
 	private Servo servo;
 	private VictorSP hopperMotor;
 	private boolean emergencyModeToggled, gearMechanismToggled, emergencyMode, clientCameraToggled;
+	private double pos;
+	private int counter;
 
 	/**
 	 * Instantiates master class
@@ -47,6 +49,8 @@ public class MechanismControls {
 		gearMechanismToggled = false;
 		emergencyMode = true;
 		clientCameraToggled = false;
+		pos = 0.0;
+		counter = 0;
 	}
 
 	/**
@@ -60,9 +64,11 @@ public class MechanismControls {
 			emergencyMode = !emergencyMode;
 		}
 		if (controller.getBumper(Hand.kLeft)) {
-			ropeClimber.pulse(0.6, 100);
-		} 
-		if (emergencyMode) {
+			ropeClimber.setMaxSpeed(0.4);
+		} else {
+			ropeClimber.setMaxSpeed(1.0);
+		}
+		if (true/*emergencyMode*/) {
 			if (controller.getBButton()) {
 				shooter.setMotorPower();
 				shooter.setAgitator(controller.getBumper(Hand.kRight));
@@ -86,15 +92,16 @@ public class MechanismControls {
 			}
 		}
 		
-		if (controller.getPOV() == 0) {
-			servo.set(0.05);
-		} else if (controller.getPOV() == 180) {
-			servo.set(0.4);
-		} else if (controller.getPOV() == 90) {
-			servo.set(0.15);
-		} else if (controller.getPOV() == 270) {
-			servo.set(0.3);
-		}
+		if(controller.getBackButton())
+			counter++;
+		servo.set(counter % 2 == 0 ? 0.85 : 0.4);
+		
+			
+		
+		//.85 = down
+		//.65 or .4 = up? idr
+		
+		
 		
 		if(controller.getStartButton() && !clientCameraToggled) {
 			CameraCoprocessor.toggleClientCamera();

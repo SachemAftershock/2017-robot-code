@@ -20,9 +20,8 @@ public class MecanumDrive {
 	private SpeedController mFrontRight, mBackRight, mFrontLeft, mBackLeft;
 	private double kd;
 	public volatile boolean autoMovement;
-	public double speed;
 	private AHRS mGyro;
-	private final double TUNED_KP = 0.0075, TUNED_KI = 0.0035, TUNED_KD = -0.0025, TUNED_KF = 0.02,
+	private final double TUNED_KP = 0.0071, TUNED_KI = 0.004, TUNED_KD = -0.0025, TUNED_KF = 0.02,
 			ROTATION_CONSTANT = 0.6;
 
 	public enum PIDModes {
@@ -55,7 +54,6 @@ public class MecanumDrive {
 		kd = driftConstant;
 		autoMovement = false;
 		mGyro = gyro;
-		speed = 0.69;
 	}
 
 	/**
@@ -221,7 +219,7 @@ public class MecanumDrive {
 		mFrontRight.set(speed);
 		mBackLeft.set(speed);
 		mBackRight.set(speed);
-		Timer.delay(time / 1000);
+		Timer.delay((double)time / 1000.0);
 		mFrontLeft.set(0);
 		mFrontRight.set(0);
 		mBackLeft.set(0);
