@@ -192,7 +192,7 @@ public class MecanumDrive {
 		double maxValue = array[0];
 
 		for (double value : array) {
-			if (Math.abs(value) > maxValue) {
+			if (Math.abs(value) >= maxValue) {
 				maxValue = Math.abs(value);
 				normFlag = maxValue > 1;
 			}
