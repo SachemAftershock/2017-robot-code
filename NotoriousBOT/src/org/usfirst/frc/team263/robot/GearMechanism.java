@@ -1,6 +1,10 @@
 package org.usfirst.frc.team263.robot;
 
+import javax.swing.plaf.ProgressBarUI;
+
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.SpeedController;
 
 /**
@@ -18,7 +22,8 @@ public class GearMechanism {
 
 	private GearModes state;
 	private DigitalInput downwardLimitSwitch, upwardLimitSwitch;
-	private boolean desireUp;
+	private Solenoid gearPiston;
+	private boolean desireUp, pistonTriggered;
 	private SpeedController motor;
 	private final double MOTOR_SPEED = 0.60, UP_MULTIPLIER = 1.2;
 
@@ -31,13 +36,19 @@ public class GearMechanism {
 	 *            Limit switch on bottom stop of system
 	 * @param upwardLimitSwitch
 	 *            Limit switch on top of system
+	 * @param gearPiston
+	 * 			  Solenoid which controls piston for gear mech
+	 * 
 	 */
-	public GearMechanism(SpeedController motor, DigitalInput downwardLimitSwitch, DigitalInput upwardLimitSwitch) {
+	public GearMechanism(SpeedController motor, DigitalInput downwardLimitSwitch, DigitalInput upwardLimitSwitch, Solenoid gearPiston) {
 		this.motor = motor;
 		this.downwardLimitSwitch = downwardLimitSwitch;
 		this.upwardLimitSwitch = upwardLimitSwitch;
+		this.gearPiston = gearPiston;
+		
 		state = GearModes.eDown;
 		desireUp = false;
+		pistonTriggered = false;
 	}
 
 	/**
@@ -45,6 +56,7 @@ public class GearMechanism {
 	 */
 	public void toggleState() {
 		desireUp = !desireUp;
+		pistonTriggered = !pistonTriggered;
 	}
 
 	/**
@@ -58,6 +70,17 @@ public class GearMechanism {
 	
 	public GearModes getUp() {
 		return GearModes.eUp;
+	}
+	
+	private void runPiston() {
+		System.out.println(!gearPiston.get() + "\t" + pistonTriggered + "\t" + desireUp);
+		if(!gearPiston.get() && pistonTriggered) {
+			gearPiston.set(true);
+		} else if(gearPiston.get() && !pistonTriggered) {
+			gearPiston.set(false);
+		} else {
+			
+		}
 	}
 
 	/**
@@ -81,6 +104,7 @@ public class GearMechanism {
 		case eDown:
 		case eUp:
 			motor.set(0.00);
+			//runPiston();
 			break;
 		case eGoingUp:
 			motor.set(MOTOR_SPEED * UP_MULTIPLIER);

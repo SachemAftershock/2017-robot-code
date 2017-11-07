@@ -67,7 +67,7 @@ public class BallShooter {
 		if (controller.getPOV() == 0) {
 			speed = 0.97;
 		} else if (controller.getPOV() == 90) {
-			speed = 0.9;
+			speed = 0.9;	
 		} else if (controller.getPOV() == 180) {
 			speed = 0.775;
 		} else if (controller.getPOV() == 270) {

@@ -5,26 +5,30 @@ import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
-import edu.wpi.first.wpilibj.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.XboxController;
+
 public class Robot extends SampleRobot {
 	AHRS gyro;
 	VictorSP frontRight, frontLeft, backRight, backLeft, agitator;
 	CANTalon ballShooterMotor, ropeClimberMotor;
 	VictorSP gearMechanismMotor, hopperMotor;
+	Solenoid gearPiston;
 	XboxController pDriver, sDriver;
 	MecanumDrive drive;
 	MechanismControls mech;
 	BallShooter shooter;
 	RopeClimber ropeClimber;
+	//Compressor compressor;
 	GearMechanism gearMechanism;
 	DigitalInput leftClimberLS, rightClimberLS, climberSprocketLS, bottomGearLS, topGearLS, cameraJumper;
 	Encoder shooterEncoder;
@@ -33,7 +37,7 @@ public class Robot extends SampleRobot {
 	Servo servo;
 	VisionProcessing visionProcessing;
 	boolean fieldOriented, previouslyPressed;
-	final double DRIFT_CONSTANT = 0.005;
+	final double DRIFT_CONSTANT = 0.0;
 	final int CAMERA_X = 360, CAMERA_Y = 240;
 
 	@Override
@@ -45,7 +49,7 @@ public class Robot extends SampleRobot {
 			CameraServer.getInstance().startAutomaticCapture();
 		}
 		LEDStrip.sendColor(LEDStrip.LEDMode.eRainbow);
-		
+
 	}
 
 	public Robot() {
@@ -58,8 +62,11 @@ public class Robot extends SampleRobot {
 		backRight = new VictorSP(3);
 		gearMechanismMotor = new VictorSP(4);
 		agitator = new VictorSP(5);
+		//compressor = new Compressor();
 		hopperMotor = new VictorSP(6);
 
+		
+		
 		// Initialize all DIO based elements
 		bottomGearLS = new DigitalInput(0);
 		topGearLS = new DigitalInput(1);
@@ -70,6 +77,11 @@ public class Robot extends SampleRobot {
 		shooterEncoder = new Encoder(5, 6, false, Encoder.EncodingType.k2X);
 		shooterEncoder.setReverseDirection(true);
 		shooterEncoder.setSamplesToAverage(10);
+		
+		//Initialize pnuematic components
+		//gearPiston = new Solenoid(0);
+		//compressor = new Compressor();
+		
 
 		// Determine which motors are inverted empirically
 		frontRight.setInverted(true);
@@ -92,13 +104,15 @@ public class Robot extends SampleRobot {
 		drive = new MecanumDrive(frontRight, backRight, frontLeft, backLeft, gyro, DRIFT_CONSTANT);
 		shooter = new BallShooter(ballShooterMotor, agitator, shooterEncoder, sDriver);
 		ropeClimber = new RopeClimber(ropeClimberMotor, leftClimberLS, rightClimberLS);
-		gearMechanism = new GearMechanism(gearMechanismMotor, bottomGearLS, topGearLS);
+		gearMechanism = new GearMechanism(gearMechanismMotor, bottomGearLS, topGearLS, gearPiston);
 		macros = new Macros(gyro, CAMERA_X, CAMERA_Y, drive, shooter, gearMechanism,
 				new XboxController[] { pDriver, sDriver });
 		mech = new MechanismControls(shooter, gearMechanism, ropeClimber, macros, servo, hopperMotor);
 		autonomous = new Autonomous(drive, gearMechanism, shooter, ropeClimber, climberSprocketLS);
 		visionProcessing = new VisionProcessing(CAMERA_X, CAMERA_Y);
 
+		//compressor.setClosedLoopControl(true);
+		
 		// Initialize booleans for field oriented toggle
 		fieldOriented = false;
 		previouslyPressed = false;
@@ -117,14 +131,14 @@ public class Robot extends SampleRobot {
 			// Drive robot's drivebase and mechanisms.
 			drive.drive(pDriver, fieldOriented);
 			mech.drive(sDriver);
-			
+
 			// LEDStrip feedback logic
 			if (gearMechanism.getState().equals(gearMechanism.getUp())) {
-				
+
 			}
 		}
-		//NetworkTable.getTable("cameraData").putBoolean("end", false);
-	}	
+		// NetworkTable.getTable("cameraData").putBoolean("end", false);
+	}
 
 	@Override
 	public void autonomous() {
@@ -135,11 +149,9 @@ public class Robot extends SampleRobot {
 			} else {
 				LEDStrip.sendColor(LEDStrip.LEDMode.eBlue);
 			}
-			
-			autonomous.middleGear();
-			
-			/*String autoMode = CameraCoprocessor.getAutoMode();
-			 if (autoMode.equals("Middle With Shot")) {
+
+			String autoMode = CameraCoprocessor.getAutoMode();
+			if (autoMode.equals("Middle With Shot")) {
 				autonomous.middleGearShoot();
 			} else if (autoMode.equals("Left Gear Forward")) {
 				autonomous.leftGear();
@@ -152,17 +164,23 @@ public class Robot extends SampleRobot {
 			} else if (autoMode.equals("Right Gear Still")) {
 				autonomous.rightGearStill();
 			} else if (autoMode.equals("Nothing")) {
-			
+
 			} else {
 				System.out.println("Error - Recieved Unknown Command: " + autoMode);
-			}*/
+			}
+			autonomous.middleGear();
 		}
 
 	}
-
+	@Override
+	public void test() {
+		while(isEnabled() && isTest()) {
+		}
+	}
+	
 	@Override
 	public void disabled() {
 		super.disabled();
-		//NetworkTable.getTable("cameraData").putBoolean("end", true);
+		// NetworkTable.getTable("cameraData").putBoolean("end", true);
 	}
 }

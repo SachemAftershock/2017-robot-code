@@ -1,5 +1,7 @@
 package org.usfirst.frc.team263.robot;
 
+import java.util.Arrays;
+
 import com.kauailabs.navx.frc.AHRS;
 
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -15,22 +17,24 @@ import edu.wpi.first.wpilibj.XboxController;
  * @author Dan Waxman
  * @since 01-20-17
  */
-public class MecanumDrive {
+public class MecanumDriveCopy {
 	private Thread rotationThread;
 	private SpeedController mFrontRight, mBackRight, mFrontLeft, mBackLeft;
 	private double kd;
 	public volatile boolean autoMovement;
 	private AHRS mGyro;
-	private final double TUNED_KP = 0.0033, TUNED_KI = 0.004, TUNED_KD = -0.0025, TUNED_KF = 0.045,
-			ROTATION_CONSTANT = 0.55;
+	private boolean clientCameraToggled;
+	private final double TUNED_KP = 0.013 * 1.1, TUNED_KI = 0.00005 * 1.1, TUNED_KD = 0.006 * 1.1, ROTATION_CONSTANT = 0.6;
 
+	// private final double TUNED_KP = 0.1, TUNED_KI = Math.pow(10, -5),
+	// TUNED_KD = 0.3, ROTATION_CONSTANT = 0.6;
 	public enum PIDModes {
 		eRotate, eLinearX, eLinearY;
 	}
 
 	/**
-	 * Construct instance of drivebase code with appropriate motor controllers to be
-	 * addressed.
+	 * Construct instance of drivebase code with appropriate motor controllers
+	 * to be addressed.
 	 * 
 	 * @param frontRight
 	 *            front right wheel motor controller
@@ -45,7 +49,7 @@ public class MecanumDrive {
 	 * @param driftConstant
 	 *            proportionality constant for angle drift of drivebase
 	 */
-	public MecanumDrive(SpeedController frontRight, SpeedController backRight, SpeedController frontLeft,
+	public MecanumDriveCopy(SpeedController frontRight, SpeedController backRight, SpeedController frontLeft,
 			SpeedController backLeft, AHRS gyro, double driftConstant) {
 		mFrontRight = frontRight;
 		mBackRight = backRight;
@@ -54,11 +58,12 @@ public class MecanumDrive {
 		kd = driftConstant;
 		autoMovement = false;
 		mGyro = gyro;
+		clientCameraToggled = false;
 	}
 
 	/**
-	 * Construct instance of drivebase code with appropriate motor controllers to be
-	 * addressed.
+	 * Construct instance of drivebase code with appropriate motor controllers
+	 * to be addressed.
 	 * 
 	 * @param frontRight
 	 *            front right wheel motor controller
@@ -71,7 +76,7 @@ public class MecanumDrive {
 	 * @param gyro
 	 *            AHRS device to read yaw from
 	 */
-	public MecanumDrive(SpeedController frontRight, SpeedController backRight, SpeedController frontLeft,
+	public MecanumDriveCopy(SpeedController frontRight, SpeedController backRight, SpeedController frontLeft,
 			SpeedController backLeft, AHRS gyro) {
 		this(frontRight, backRight, frontLeft, backLeft, gyro, 0.005);
 	}
@@ -81,15 +86,17 @@ public class MecanumDrive {
 	 * field-centric controls and rotational closed system feedback.
 	 * 
 	 * <p>
-	 * This method is field oriented, meaning that a control direction is absolute
-	 * to the field's Cartesian plane.
+	 * This method is field oriented, meaning that a control direction is
+	 * absolute to the field's Cartesian plane.
 	 * </p>
 	 * <p>
 	 * Also offers closed loop rotational feedback system.
 	 * </p>
 	 * <p>
-	 * Refer to <code>drive(Xbox controller)</code> for non-field oriented controls.
+	 * Refer to <code>drive(Xbox controller)</code> for non-field oriented
+	 * controls.
 	 * </p>
+	 * s
 	 * 
 	 * @param controller
 	 *            Xbox controller to input drive controls
@@ -104,7 +111,6 @@ public class MecanumDrive {
 			double y = deadband(-controller.getRawAxis(1), 0.1);
 			double r = deadband(controller.getTriggerAxis(Hand.kRight) - controller.getTriggerAxis(Hand.kLeft), 0.1);
 
-			// "Drive straight" mode to avoid slower movement due to strafing
 			if (controller.getBumper(Hand.kRight)) {
 				x = 0;
 			}
@@ -116,8 +122,6 @@ public class MecanumDrive {
 
 			if (fieldCentric) {
 				// Perform vector rotation in R^2 by theta degrees
-				// This can be useful for things such as aligning a rope climb
-				// Where relative movement can be confusing
 				double theta = mGyro.getYaw();
 				double sinT = Math.sin(Math.toRadians(theta));
 				double cosT = Math.cos(Math.toRadians(theta));
@@ -126,37 +130,24 @@ public class MecanumDrive {
 				y = yPrime;
 			}
 
-			double[] speeds;
-			if (controller.getPOV(0) == 90) {
-				speeds = new double[] { -0.7, 0.784, 1.0899, -0.7 };
-			} else if (controller.getPOV(0) == 270) {
-				speeds = new double[] { 0.7, -0.784, -1.0899, 0.7 };
-			} else {
-				speeds = new double[] { 0.8 * (-x + y - r * ROTATION_CONSTANT), 0.8 * (x + y - r * ROTATION_CONSTANT),
-						0.8 * (x + y + r * ROTATION_CONSTANT), 0.8 * (-x + y + r * ROTATION_CONSTANT) };
-			}
-
 			// Speeds = {fr, br, fl, bl} operations for each wheel speed.
 			// Speeds are then normalized to make sure the robot drives
 			// correctly.
+			double[] speeds = { -x + y - r * ROTATION_CONSTANT, x + y - r * ROTATION_CONSTANT,
+					x + y + r * ROTATION_CONSTANT, -x + y + r * ROTATION_CONSTANT };
 			normalize(speeds);
 
-			// Throttle for finer movement
 			double throttleMultiplier = controller.getBumper(Hand.kLeft) ? 0.5 : 1.0;
 
-			// Set finalized speeds
 			mFrontRight.set(speeds[0] * throttleMultiplier);
 			mBackRight.set(speeds[1] * throttleMultiplier);
 			mFrontLeft.set(speeds[2] * throttleMultiplier);
 			mBackLeft.set(speeds[3] * throttleMultiplier);
 
-			// Automovement threads
-			// Automovement is a public variable used in place of thread
-			// interrupts. These line up perfectly for peg placement.
 			if (controller.getXButton()) {
 				synchronized (this) {
 					autoMovement = true;
-					rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, TUNED_KF, mGyro, 60,
+					rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, -90,
 							new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
 							new double[] { 1, 1, -1, -1 });
 					rotationThread.start();
@@ -164,7 +155,7 @@ public class MecanumDrive {
 			} else if (controller.getBButton()) {
 				synchronized (this) {
 					autoMovement = true;
-					rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, TUNED_KF, mGyro, -60,
+					rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, 90,
 							new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
 							new double[] { 1, 1, -1, -1 });
 					rotationThread.start();
@@ -172,16 +163,22 @@ public class MecanumDrive {
 			} else if (controller.getYButton()) {
 				synchronized (this) {
 					autoMovement = true;
-					rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, TUNED_KF, mGyro, 0,
+					rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, 0,
 							new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
 							new double[] { 1, 1, -1, -1 });
 					rotationThread.start();
 				}
 			}
 		} else if (controller.getAButton()) {
-			// Cancels and effectively kills any running rotation threads.
 			autoMovement = false;
 		}
+		/*
+		 * if(controller.getStartButton() && clientCameraToggled) {
+		 * CameraCoprocessor.toggleClientCamera(); }
+		 * 
+		 * clientCameraToggled = controller.getStartButton();
+		 * CameraCoprocessor.setClientCamera();
+		 */
 	}
 
 	/**
@@ -212,90 +209,66 @@ public class MecanumDrive {
 		}
 	}
 
-	/**
-	 * Method to move linearly for a certain period of time.
-	 * 
-	 * @param speed
-	 *            Speed to set motors at to move -- positive is forward, negative is
-	 *            backward
-	 * @param time
-	 *            Time period to move for (in ms).
-	 */
-	public void forward(double speed, int time) {
-		double r;
-		int t = 0;
-		while (t < time) {
-			r = mGyro.getRate() * kd;
-			double[] speeds = { speed - r * ROTATION_CONSTANT, speed - r * ROTATION_CONSTANT,
-					speed + r * ROTATION_CONSTANT, speed + r * ROTATION_CONSTANT };
-			normalize(speeds);
-			mFrontRight.set(speeds[0]);
-			mBackRight.set(speeds[1]);
-			mFrontLeft.set(speeds[2]);
-			mBackLeft.set(speeds[3]);
-			Timer.delay(0.025);
-			t += 25;
-		}
-		mFrontRight.set(0);
-		mBackRight.set(0);
-		mFrontLeft.set(0);
-		mBackLeft.set(0);
-	}
-
-	/**
-	 * Method to strafe for a certain period of time.
-	 * 
-	 * @param speed
-	 *            Speed to set motors at to strafe -- positive is to the right,
-	 *            negative to the left.
-	 * @param time
-	 *            Time period to move for (in ms).
-	 */
 	public void strafe(double speed, long time) {
 		mFrontRight.set(-speed);
 		mFrontLeft.set(speed);
 		mBackRight.set(speed);
 		mBackLeft.set(-speed);
-		Timer.delay(time / 1000);
+		try {
+			Thread.sleep(time);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		mFrontRight.set(0);
 		mFrontLeft.set(0);
 		mBackRight.set(0);
 		mBackLeft.set(0);
 	}
 
-	/**
-	 * Method to rotate for a certain period of time.
-	 * 
-	 * @param speed
-	 *            Speed to set motors at to rotate -- positive is clockwise,
-	 *            negative to the counterclockwise.
-	 * @param time
-	 *            Time period to move for (in ms).
-	 */
 	public void rotate(double speed, long time) {
 		mFrontRight.set(-speed);
 		mFrontLeft.set(speed);
 		mBackRight.set(-speed);
 		mBackLeft.set(speed);
-		Timer.delay(time / 1000);
+		try {
+			Thread.sleep(time);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		mFrontRight.set(0);
 		mFrontLeft.set(0);
 		mBackRight.set(0);
 		mBackLeft.set(0);
 	}
 
-	/**
-	 * Method to create a PIDF thread for rotation.
-	 * 
-	 * @param theta
-	 *            Absolute position to field to rotate to (in degrees)
-	 */
+	public void autoStrafe(double distance) {
+		synchronized (this) {
+			autoMovement = true;
+			rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, distance,
+					new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
+					new double[] { -1, 1, 1, -1 }, PIDModes.eLinearX);
+			rotationThread.start();
+		}
+	}
+
+	public void autoDrive(double distance) {
+		synchronized (this) {
+			autoMovement = true;
+			rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, distance,
+					new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
+					new double[] { 1, 1, 1, 1 }, PIDModes.eLinearY);
+			rotationThread.start();
+		}
+	}
+
 	public void autoRotate(double theta) {
 		synchronized (this) {
 			autoMovement = true;
-			rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, TUNED_KF, mGyro, theta,
+			rotationThread = new PIDController(TUNED_KP, TUNED_KI, TUNED_KD, mGyro, theta,
 					new SpeedController[] { mFrontRight, mBackRight, mFrontLeft, mBackLeft },
-					new double[] { 1, 1, -1, -1 });
+					new double[] { 1, 1, -1, -1 }, PIDModes.eRotate);
 			rotationThread.start();
 		}
 	}
@@ -315,107 +288,131 @@ public class MecanumDrive {
 	}
 
 	/**
-	 * PIDF Class for auto base rotation
-	 * 
-	 * Feedforward is provided for angular acceleration
+	 * PID Class for auto base rotation
 	 * 
 	 * @author Dan Waxman
 	 * @version 0.1
 	 * @since 01/26/17
 	 */
 	private class PIDController extends Thread {
-		private double kp, ki, kd, kf, setPoint, error, previousError, previousOmega, alpha, integral;
+		private double Kp, Ki, Kd, setPoint, integral, previousError, epsilon, initialDisplacement;
 		private AHRS inputDevice;
 		private SpeedController[] motors;
 		private double[] multipliers;
-		private final double epsilon = 5;
+		private PIDModes mode;
 
-		/**
-		 * Constructor for new PIDF thread
-		 * 
-		 * @param Kp
-		 *            Tuned proportional gain constant
-		 * @param Ki
-		 *            Tuned integral gain constant
-		 * @param Kd
-		 *            Tuned derivative gain constant
-		 * @param Kf
-		 *            Tuned feedforward gain constant
-		 * @param gyro
-		 *            AHRS device for feedback
-		 * @param setPoint
-		 *            Angle (in degrees) to rotate to
-		 * @param motors
-		 *            Set of SpeedController devices for output
-		 * @param multipliers
-		 *            Multipliers to apply to each motor
-		 */
-		public PIDController(double Kp, double Ki, double Kd, double Kf, AHRS gyro, double setPoint,
+		public PIDController(double Kp, double Ki, double Kd, AHRS inputDevice, double setPoint,
 				SpeedController[] motors, double[] multipliers) {
-			this.kp = Kp;
-			this.ki = Ki;
-			this.kd = Kd;
-			this.kf = Kf;
+			this.Kp = Kp;
+			this.Ki = Ki;
+			this.Kd = Kd;
+			this.inputDevice = inputDevice;
 			this.setPoint = setPoint;
 			this.motors = motors;
 			this.multipliers = multipliers;
-			this.inputDevice = gyro;
+			this.mode = PIDModes.eRotate;
+			integral = 0;
+			previousError = setPoint - rotateError(inputDevice.getYaw(), setPoint);
+			epsilon = 5;
 		}
 
-		/**
-		 * Method for closed loop rotation
-		 */
+		public PIDController(double Kp, double Ki, double Kd, AHRS inputDevice, double setPoint,
+				SpeedController[] motors, double[] multipliers, PIDModes mode) {
+			this.Kp = Kp;
+			this.Ki = Ki;
+			this.Kd = Kd;
+			this.inputDevice = inputDevice;
+			this.setPoint = setPoint;
+			this.motors = motors;
+			this.multipliers = multipliers;
+			this.mode = mode;
+			integral = 0;
+			epsilon = 5;
+			if (mode.equals(PIDModes.eRotate)) {
+				previousError = rotateError(inputDevice.getYaw(), setPoint);
+			} else if (mode.equals(PIDModes.eLinearX)) {
+				initialDisplacement = inputDevice.getDisplacementX();
+				previousError = linearError(setPoint, inputDevice.getDisplacementX() - initialDisplacement);
+			} else {
+				initialDisplacement = inputDevice.getDisplacementY();
+				previousError = linearError(setPoint, inputDevice.getDisplacementY() - initialDisplacement);
+			}
+		}
+
 		public void run() {
-			error = rotationalError(inputDevice.getYaw(), setPoint);
-			previousError = error;
-			alpha = 0;
-			previousOmega = inputDevice.getRate();
-			while (Math.abs(error) > epsilon && autoMovement) {
-				synchronized (this) {
+			Timer t = new Timer();
+			double error;
+			if (mode.equals(PIDModes.eRotate)) {
+				error = rotateError(inputDevice.getYaw(), setPoint);
+			} else if (mode.equals(PIDModes.eLinearX)) {
+				error = linearError(setPoint, inputDevice.getDisplacementX() - initialDisplacement);
+			} else {
+				error = linearError(setPoint, inputDevice.getDisplacementY() - initialDisplacement);
+			}
+			synchronized (this) {
+				while (Math.abs(error) > epsilon && autoMovement) {
+					if (mode.equals(PIDModes.eRotate)) {
+						error = rotateError(inputDevice.getYaw(), setPoint);
+					} else if (mode.equals(PIDModes.eLinearX)) {
+						error = linearError(setPoint, inputDevice.getDisplacementX() - initialDisplacement);
+					} else {
+						error = linearError(setPoint, inputDevice.getDisplacementY() - initialDisplacement);
+					}
 					integral += error;
-					alpha = inputDevice.getRate() - previousOmega;
-					previousOmega = inputDevice.getRate();
-					double iTerm = Math.abs(previousError - error) < 2 ? ki * integral : 0;
-					double u = kp * error + iTerm + kd * (previousError - error) - kf * Math.abs(alpha);
+					double iTerm = Math.abs(previousError - error) > 2 ? 0 : Ki * integral;
+					double u = Kp * error + iTerm + Kd * (error - previousError);
 					double[] motorSpeeds = new double[motors.length];
+					if (Math.abs(previousError - error) < 2) {
+						System.out.println(u);
+					}
 					for (int i = 0; i < motors.length; i++) {
 						motorSpeeds[i] = u * multipliers[i];
 					}
 					normalize(motorSpeeds);
 					for (int i = 0; i < motors.length; i++) {
-						motorSpeeds[i] *= 0.6;
+						motorSpeeds[i] *= 0.4;
 					}
 					for (int i = 0; i < motors.length; i++) {
 						motors[i].set(motorSpeeds[i]);
 					}
-					error = rotationalError(inputDevice.getYaw(), setPoint);
-					if (Math.abs(error) > epsilon) {
-						try {
-							Thread.sleep(500);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					if (Math.abs(previousError - error) < 2) {
+						t.start();
+						System.out.println("testsstststss");
+						if (t.hasPeriodPassed(0.1)) {
+							System.out.println("test1151513531");
+							autoMovement = false;
 						}
-						error = rotationalError(inputDevice.getYaw(), setPoint);
+					}
+					if (Math.abs(error) < epsilon) {
+						Timer.delay(0.25);
+					}
+					if (mode.equals(PIDModes.eRotate)) {
+						error = rotateError(inputDevice.getYaw(), setPoint);
+					} else if (mode.equals(PIDModes.eLinearX)) {
+						error = linearError(setPoint, inputDevice.getDisplacementX() - initialDisplacement);
+					} else {
+						error = linearError(setPoint, inputDevice.getDisplacementY() - initialDisplacement);
 					}
 				}
 			}
-			// Release objects taking significant memory
+
+			System.out.println("exit: " + inputDevice.getYaw() + " | navX delat X: " + inputDevice.getDisplacementY());
 			motors = null;
 			inputDevice = null;
 			autoMovement = false;
 		}
 
-		/**
-		 * Method to find signed error in rotation in 2D plane
-		 * 
-		 * @param alpha
-		 *            First angle
-		 * @param beta
-		 *            Second angle
-		 * @return Absolute signed error in 2D plane
-		 */
-		private double rotationalError(double alpha, double beta) {
+		private double linearError(double point1, double point2) {
+			return point2 - point1;
+		}
+
+		private double rotateError(double alpha, double beta) {
 			double ret = alpha - beta;
 			if (ret < -180) {
 				ret += 360;
@@ -425,5 +422,22 @@ public class MecanumDrive {
 			}
 			return ret;
 		}
+	}
+
+	public void forward(double d, int i) {
+		mFrontLeft.set(d);
+		mFrontRight.set(d);
+		mBackLeft.set(d);
+		mBackRight.set(d);
+		try {
+			Thread.sleep(i);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+		}
+		mFrontLeft.set(0);
+		mFrontRight.set(0);
+		mBackLeft.set(0);
+		mBackRight.set(0);
 	}
 }

@@ -9,6 +9,7 @@ public class Autonomous {
 	BallShooter shooter;
 	GearMechanism gearMechanism;
 	MecanumDrive drive;
+	double mult;
 
 	public Autonomous(MecanumDrive drive, GearMechanism gearMechanism, BallShooter shooter, RopeClimber climber,
 			DigitalInput climberSprocketLS) {
@@ -17,6 +18,7 @@ public class Autonomous {
 		this.shooter = shooter;
 		this.climber = climber;
 		this.climberSprocketLS = climberSprocketLS;
+		mult = 0.6;
 	}
 
 	public void leftGear() {
@@ -25,7 +27,7 @@ public class Autonomous {
 				climber.pulse(0.3, 2150);
 			}
 		}).start();
-		drive.forward(0.3, 3850);
+		drive.forward(0.3, (int) (mult * 3850));
 		Timer.delay(1.5);
 		drive.autoRotate(60);
 		// drive.rotate(-0.4, 550);
@@ -36,12 +38,12 @@ public class Autonomous {
 				break;
 			}
 		}
-		drive.forward(0.25, 2000);
-		drive.forward(-0.25, 200);
+		drive.forward(0.25, (int) (mult * 2000));
+		drive.forward(-0.25, (int) (mult * 200));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 		Timer.delay(1.5);
-		drive.forward(-0.3, 2300);
+		drive.forward(-0.3, (int) (mult * 2300));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 		drive.autoRotate(0);
@@ -52,16 +54,16 @@ public class Autonomous {
 				break;
 			}
 		}
-		drive.forward(0.6, 2700);
+		drive.forward(0.6, (int) (mult * 2700));
 	}
 
-	public void rightGear() {
+	public void rightGear_1() {
 		(new Thread() {
 			public void run() {
 				climber.pulse(0.3, 2150);
 			}
 		}).start();
-		drive.forward(0.23, 4050);
+		drive.forward(0.3, (int) (3520 * mult));
 		Timer.delay(1.5);
 		drive.autoRotate(-60);
 		// drive.rotate(-0.4, 550);
@@ -72,12 +74,12 @@ public class Autonomous {
 				break;
 			}
 		}
-		drive.forward(0.25, /*2000*/2500);
-		drive.forward(-0.25, 2500);
+		drive.forward(0.25, /* 2000 */(int) (mult * 2550));
+		drive.forward(-0.25, (int) (mult * 200));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 		Timer.delay(1.5);
-		drive.forward(-0.3, 2300);
+		drive.forward(-0.3, (int) (mult * 2500));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 		drive.autoRotate(0);
@@ -88,7 +90,79 @@ public class Autonomous {
 				break;
 			}
 		}
-		drive.forward(0.6, 2700);
+		drive.forward(0.6, (int) (mult * 2700));
+	}
+	
+	public void rightGear_t() {
+		(new Thread() {
+			public void run() {
+				climber.pulse(0.3, 2150);
+			}
+		}).start();
+		drive.forward(0.3, (int) (4050 * mult));
+		Timer.delay(1.5);
+		drive.autoRotate(-61);
+		// drive.rotate(-0.4, 550);
+		long t = System.currentTimeMillis();
+		while (drive.autoMovement) {
+			if (System.currentTimeMillis() - t > 1900) {
+				drive.autoMovement = false;
+				break;
+			}
+		}
+		drive.forward(0.25, /* 2000 */(int) (mult * 2550));
+		drive.forward(-0.25, (int) (mult * 200));
+		gearMechanism.toggleState();
+		gearMechanism.run();
+		Timer.delay(1.5);
+		drive.forward(-0.3, (int) (mult * 2500));
+		gearMechanism.toggleState();
+		gearMechanism.run();
+		drive.autoRotate(0);
+		t = System.currentTimeMillis();
+		while (drive.autoMovement) {
+			if (System.currentTimeMillis() - t > 1500) {
+				drive.autoMovement = false;
+				break;
+			}
+		}
+		drive.forward(0.6, (int) (mult * 2700));
+	}
+
+	public void rightGear() {
+		(new Thread() {
+			public void run() {
+				climber.pulse(0.3, 2150);
+			}
+		}).start();
+		drive.forward(0.23, (int) (mult * 4700));
+		Timer.delay(1.5);
+		drive.autoRotate(-60);
+		// drive.rotate(-0.4, 550);
+		long t = System.currentTimeMillis();
+		while (drive.autoMovement) {
+			if (System.currentTimeMillis() - t > 1900) {
+				drive.autoMovement = false;
+				break;
+			}
+		}
+		drive.forward(0.25, /* 2000 */(int) (mult * 2550));
+		drive.forward(-0.25, (int) (mult * 200));
+		gearMechanism.toggleState();
+		gearMechanism.run();
+		Timer.delay(1.5);
+		drive.forward(-0.3, (int) (mult * 2500));
+		gearMechanism.toggleState();
+		gearMechanism.run();
+		drive.autoRotate(0);
+		t = System.currentTimeMillis();
+		while (drive.autoMovement) {
+			if (System.currentTimeMillis() - t > 1500) {
+				drive.autoMovement = false;
+				break;
+			}
+		}
+		drive.forward(0.6, (int) (mult * 2700));
 	}
 
 	public void middleGearShoot() {
@@ -97,9 +171,9 @@ public class Autonomous {
 				climber.pulse(0.3, 2150);
 			}
 		}).start();
-		//drive.forward(0.25, 4400);
-		drive.forward(0.2, /*5400*/5700);
-		drive.forward(-0.2, 200);
+		// drive.forward(0.25, 4400);
+		drive.forward(0.2, /* 5400 */(int) (mult * 5700));
+		drive.forward(-0.2, (int) (mult * 200));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 		long t = System.currentTimeMillis();
@@ -107,7 +181,7 @@ public class Autonomous {
 			if (System.currentTimeMillis() - t > 1500)
 				break;
 		}
-		drive.forward(-0.3, 2900);
+		drive.forward(-0.3, (int) (mult * 2900));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 		drive.strafe(-0.3, 700);
@@ -123,8 +197,8 @@ public class Autonomous {
 				climber.pulse(0.3, 2150);
 			}
 		}).start();
-		drive.forward(0.2, /*5400*/6800);
-		drive.forward(-0.2, 200);
+		drive.forward(0.2, /* 5400 */(int) (mult * 6800));
+		drive.forward(-0.2, (int) (1.0 * 200));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 		long t = System.currentTimeMillis();
@@ -132,7 +206,7 @@ public class Autonomous {
 			if (System.currentTimeMillis() - t > 1500)
 				break;
 		}
-		drive.forward(-0.3, 2900);
+		drive.forward(-0.3, (int) (mult * 2900));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 	}
@@ -143,7 +217,7 @@ public class Autonomous {
 				climber.pulse(0.3, 2150);
 			}
 		}).start();
-		drive.forward(0.3, 3500);
+		drive.forward(0.3, (int) (mult * 3500));
 		Timer.delay(1.5);
 		drive.autoRotate(60);
 		// drive.rotate(-0.4, 550);
@@ -153,12 +227,12 @@ public class Autonomous {
 				break;
 			}
 		}
-		drive.forward(0.25, /*2000*/2500);
-		drive.forward(-0.25, 100);
+		drive.forward(0.25, /* 2000 */(int) (mult * 2500));
+		drive.forward(-0.25, (int) (mult * 100));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 		Timer.delay(0.5);
-		drive.forward(-0.3, 2300);
+		drive.forward(-0.3, (int) (mult * 2300));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 	}
@@ -169,7 +243,7 @@ public class Autonomous {
 				climber.pulse(0.3, 2150);
 			}
 		}).start();
-		drive.forward(0.3, 3500);
+		drive.forward(0.3, (int) (mult * 3500));
 		Timer.delay(1.5);
 		drive.autoRotate(-60);
 		// drive.rotate(-0.4, 550);
@@ -179,13 +253,22 @@ public class Autonomous {
 				break;
 			}
 		}
-		drive.forward(0.25, /*2000*/2500);
-		drive.forward(-.25, 200);
+		drive.forward(0.25, /* 2000 */(int) (mult * 2500));
+		drive.forward(-.25, (int) (mult * 200));
 		gearMechanism.toggleState();
 		gearMechanism.run();
 		Timer.delay(0.5);
-		drive.forward(-0.3, 2300);
+		drive.forward(-0.3, (int) (mult * 2300));
 		gearMechanism.toggleState();
 		gearMechanism.run();
+	}
+
+	public void baseline() {
+		(new Thread() {
+			public void run() {
+				climber.pulse(0.3, 2150);
+			}
+		}).start();
+		drive.forward(0.3, (int) (4100 * mult));
 	}
 }
