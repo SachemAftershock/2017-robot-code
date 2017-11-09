@@ -132,8 +132,8 @@ public class MecanumDrive {
 			} else if (controller.getPOV(0) == 270) {
 				speeds = new double[] { 0.7, -0.784, -1.0899, 0.7 };
 			} else {
-				speeds = new double[] { 0.8 * (-x + y - r * ROTATION_CONSTANT), 0.8 * (x + y - r * ROTATION_CONSTANT),
-						0.8 * (x + y + r * ROTATION_CONSTANT), 0.8 * (-x + y + r * ROTATION_CONSTANT) };
+				speeds = new double[] { (-x + y - r * ROTATION_CONSTANT), (x + y - r * ROTATION_CONSTANT),
+						(x + y + r * ROTATION_CONSTANT), (-x + y + r * ROTATION_CONSTANT) };
 			}
 
 			// Speeds = {fr, br, fl, bl} operations for each wheel speed.
