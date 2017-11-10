@@ -388,6 +388,7 @@ public class MecanumDrive {
 					for (int i = 0; i < motors.length; i++) {
 						motors[i].set(motorSpeeds[i]);
 					}
+					previousError = error;
 					error = rotationalError(inputDevice.getYaw(), setPoint);
 					if (Math.abs(error) > epsilon) {
 						try {
