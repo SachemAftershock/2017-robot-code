@@ -109,9 +109,8 @@ class Sender:
     def __init__(self,serverIP, serverPort, networktableIP):
         self.mode_gear = True
 
-        while False:
+        while True
             try:
-                pass
                 self.sock.connect((serverIP, serverPort))
                 break
             except Exception as e:
@@ -126,10 +125,11 @@ class Sender:
                 frame = retriever.get_latest_gear()
             else:   
                 frame = retriever.get_latest_shooter()
-                if frame is None: return
-                im = cv2.imencode('.jpg', frame)[1].tostring()
-                self.sock.send(im)
-                time.sleep(self.FRAMERATE_PERIOD)
+            
+            if frame is None: return
+            im = cv2.imencode('.jpg', frame)[1].tostring()
+            self.sock.send(im)
+            time.sleep(self.FRAMERATE_PERIOD)
         
     @classmethod
     def update_gear_coords(self, peg):
