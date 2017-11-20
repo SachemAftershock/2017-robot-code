@@ -172,7 +172,7 @@ public class Autonomous {
 			}
 		}).start();
 		// drive.forward(0.25, 4400);
-		drive.forward(0.2, /* 5400 */(int) (mult * 5700));
+		drive.forward(0.2, /* 5400 */(int) (mult * 6800));
 		drive.forward(-0.2, (int) (mult * 200));
 		gearMechanism.toggleState();
 		gearMechanism.run();
@@ -209,6 +209,16 @@ public class Autonomous {
 		drive.forward(-0.3, (int) (mult * 2900));
 		gearMechanism.toggleState();
 		gearMechanism.run();
+	}
+	
+	public void straight() {
+		(new Thread() {
+			public void run() {
+				climber.pulse(0.3, 2150);
+			}
+		}).start();
+		drive.forward(0.2, /* 5400 */(int) (mult * 7500));
+		drive.forward(-0.2, (int) (1.0 * 200));
 	}
 
 	public void leftGearStill() {

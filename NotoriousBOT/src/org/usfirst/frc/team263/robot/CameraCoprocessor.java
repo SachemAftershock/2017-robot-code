@@ -19,8 +19,7 @@ public class CameraCoprocessor {
 	 */
 	public static double[] updateGearCamera() {
 		table = NetworkTable.getTable("cameraData/gear");
-		return new double[] { table.getNumber("pointOneX", -1.0), table.getNumber("pointOneY", -1.0),
-				table.getNumber("pointTwoX", -1.0), table.getNumber("pointTwoY", -1.0) };
+		return new double[] { table.getNumber("x", 1), table.getNumber("y", 1)} ;
 	}
 
 	/**

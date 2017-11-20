@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.I2C;
 public class LEDStrip {
 	private static final int ARDUINO_I2C_ADDRESS = 10;
 	private static I2C i2c = new I2C(I2C.Port.kOnboard, ARDUINO_I2C_ADDRESS);
-	private static byte[] colorModes = { 'r', 'b', 'p', 't', 'n', 'a', 'o' };
+	private static byte[] colorModes = { 'r', 'g', 'b', 'p', 't', 'n', 'a', 'o' };
 	public static LEDMode currentMode = LEDMode.eOff;
 
 	/**

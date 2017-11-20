@@ -99,7 +99,7 @@ public class MecanumDrive {
 	public void drive(XboxController controller, boolean fieldCentric) {
 		if (!autoMovement) {
 			// Get controller inputs with artificial deadband.
-			// y-axis is negated in order to make driving more intuitive.
+			// y-axis is negated in order to make driving more intuitive.	
 			double x = deadband(controller.getRawAxis(0), 0.1);
 			double y = deadband(-controller.getRawAxis(1), 0.1);
 			double r = deadband(controller.getTriggerAxis(Hand.kRight) - controller.getTriggerAxis(Hand.kLeft), 0.1);
@@ -132,8 +132,8 @@ public class MecanumDrive {
 			} else if (controller.getPOV(0) == 270) {
 				speeds = new double[] { 0.7, -0.784, -1.0899, 0.7 };
 			} else {
-				speeds = new double[] { (-x + y - r * ROTATION_CONSTANT), (x + y - r * ROTATION_CONSTANT),
-						(x + y + r * ROTATION_CONSTANT), (-x + y + r * ROTATION_CONSTANT) };
+				speeds = new double[] { 1.0 * (-x + y - r * ROTATION_CONSTANT), 1.0 * (x + y - r * ROTATION_CONSTANT),
+						1.0 * (x + y + r * ROTATION_CONSTANT), 1.0 * (-x + y + r * ROTATION_CONSTANT) };
 			}
 
 			// Speeds = {fr, br, fl, bl} operations for each wheel speed.
@@ -394,10 +394,8 @@ public class MecanumDrive {
 						try {
 							Thread.sleep(500);
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						error = rotationalError(inputDevice.getYaw(), setPoint);
 					}
 				}
 			}

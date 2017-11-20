@@ -163,12 +163,13 @@ public class Robot extends SampleRobot {
 				autonomous.leftGearStill();
 			} else if (autoMode.equals("Right Gear Still")) {
 				autonomous.rightGearStill();
+			} else if (autoMode.equals("Straight")) {
+				autonomous.straight();
 			} else if (autoMode.equals("Nothing")) {
-
+				
 			} else {
 				System.out.println("Error - Recieved Unknown Command: " + autoMode);
 			}
-			autonomous.middleGear();
 		}
 
 	}

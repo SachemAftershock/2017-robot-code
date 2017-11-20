@@ -93,6 +93,8 @@ public class MechanismControls {
 			CameraCoprocessor.toggleClientCamera();
 		}
 		/*
+sudo python3 /home/pi/VisionProcessing/Main.py &
+
 		if(controller.getYButton() && closedLoopControl != compressor.getClosedLoopControl()) {
 			compressor.setClosedLoopControl(closedLoopControl);
 		}

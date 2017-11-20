@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 
 /**
@@ -78,18 +79,24 @@ public class Macros {
 			// epsilon accuracy
 			if (stateCounter == 2) {
 				double[] centerPoints = CameraCoprocessor.updateGearCamera();
-				distanceGearPeg = vision.findDistancePeg(centerPoints);
-				//strafeDist = vision.findStrafeDistancePeg(centerPoints);
-				if (distanceGearPeg == -1) {
-					(new JoystickRumble(joysticks, 2)).start();
-					isRunning = false;
-					stateCounter = 0;
-					return;
+				if (Math.abs(centerPoints[0])  + Math.abs(centerPoints[1]) == 0) {
+					for (XboxController js : joysticks) {
+						JoystickRumble r = new JoystickRumble(js, 3);
+						r.run();
+					}
+				} else {
+					//strafeDist = vision.findStrafeDistancePeg(centerPoints);
+					if (centerPoints[0] > 0.55) {
+						drive.strafe(0.4, 300);
+					} else if(centerPoints[1] < 0.45) {
+						drive.strafe(-0.4, 300);
+					} else { 
+						stateCounter++;
+					}
 				}
-				stateCounter++;
 			}
 			if (stateCounter == 3) {
-				//drive.autoStrafe(strafeDist);
+				drive.forward(0.5, 800);
 				stateCounter++;
 			}
 			if (stateCounter == 4) {
@@ -101,7 +108,7 @@ public class Macros {
 				stateCounter++;
 			}
 			if (stateCounter == 6) {
-				//drive.autoDrive(-10);
+				Timer.delay(0.5);
 				stateCounter++;
 			}
 			if (stateCounter == 7) {
