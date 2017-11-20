@@ -8,9 +8,12 @@ sock.bind(('',5810))
 sock.listen(5)
 NetworkTables.initialize(server='roboRIO-263-FRC.local')
 
-
+'''
+script that runs on host computer during match. Selects autonomous mode at
+beginning and then start receiving camera feed from the client(raspberry pi)
+'''
 def main():
-	modeList = ['Middle With Shot - %d', 'Left Gear Forward - %d', 'Right Gear Forward - %d', 'Middle Gear No Shot - %d', 'Left Gear Still - %d', 'Right Gear Still - %d', 'Nothing - %d']
+	modeList = ['Middle With Shot - %d', 'Left Gear Forward - %d', 'Right Gear Forward - %d', 'Middle Gear No Shot - %d', 'Left Gear Still - %d', 'Right Gear Still - %d', 'Straight - %d', 'Nothing - %d']
 	for i,e in enumerate(modeList):
 		print(e % i)
 	choice = int(input('What mode do you wanna do...\n'))
@@ -19,13 +22,15 @@ def main():
 	try:
 		input('Sending '  + modeList[choice].replace(' - %d','') + ' via networktables')
 	except Exception as e:
-		print('you fucked up: ' + str(e))
+		print('you messed up: ' + str(e))
 
 	client, addr = sock.accept()
+	print('Connected to client at',addr)
 	while True:
-		img = client.recv(300000)
+		img = client.recv(300000) #need to fix, make a better protocol for handling sizes
 		string = np.fromstring(img,np.uint8)
 		im = cv2.imdecode(string, 1)
+		if im: print(im.shape)
 		try:
 			cv2.imshow('Frame',im)
 		except Exception as e:
