@@ -109,7 +109,7 @@ class Sender:
     def __init__(self,serverIP, serverPort, networktableIP):
         self.mode_gear = True
 
-        while True
+        while True:
             try:
                 self.sock.connect((serverIP, serverPort))
                 break
