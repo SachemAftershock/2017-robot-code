@@ -74,15 +74,27 @@ class FindTape:
         x, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         if len(contours) > 1:
             if True: #TODO: Add minimum area condition here
-                M  = contours[0]
-                M2 = contours[1]
+                M_area = 0
+                M2_area = 0
+                if (cv2.contourArea(contours[0]) > cv2.contourArea(contours[1])):
+                    M  = contours[0]
+                    M_area = cv2.contourArea(contours[0])
+                    M2 = contours[1]
+                    M2_area = cv2.contourArea(contours[1])
+                else:
+                    M  = contours[1]
+                    M_area = cv2.contourArea(contours[1])
+                    M2 = contours[0]
+                    M2_area = cv2.contourArea(contours[0])
                 for i in range(2, len(contours)):
-                    if cv2.contourArea(contours[i]) > cv2.contourArea(M):
+                    if cv2.contourArea(contours[i]) > M_area:
                         M2 = M
                         M = contours[i]
-                    elif cv2.contourArea(contours[i]) > cv2.contourArea(M2):
+                        M2_area = M_area
+                        M_area = cv2.contourArea(M)
+                    elif cv2.contourArea(contours[i]) > M2_area:
                         M2 = contours[i]
-
+                        M2_area = cv2.contourArea(M2)
                 M         = cv2.moments(M)
                 M2        = cv2.moments(M2)
                 centroid  = (int(M['m10']) // int(max(M['m00'], 1)), int(M['m01']) // int(max(M['m00'], 1)))
